@@ -18,6 +18,9 @@ def main():
     node_size= np.full(len(inputs),3)
     node_color= np.full(len(inputs),"r")
     
+    node_size= np.full(5753,3)
+    node_color= np.full(5753,"r")
+
     for input in inputs[0:]:
         input = os.path.basename(input)
         if "orig" in input:
