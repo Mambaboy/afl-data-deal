@@ -43,7 +43,4 @@ struct queue_entry {
 u8 *out_dir;                   /* Working & output directory       */
 struct queue_entry * queue;   /* Fuzzing queue (linked list)      */
 
-
-
-
 #endif // end_AFL_FUZZ_H

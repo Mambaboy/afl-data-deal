@@ -1,9 +1,18 @@
+#ifdef _cplusplus
+extern "C" {
+#endif
+
 #include "interface.h"
+
+#ifdef _cplusplus
+}
+#endif
+
 #include "distance.h"
 
 Record* aflRecord = NULL;
 
-u8 InitDistance( u8 fuck){
+u8 InitDistance( ){
     aflRecord =  new Record();
     if (aflRecord!= NULL)
         return 1;

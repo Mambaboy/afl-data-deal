@@ -17,7 +17,7 @@ u32* GetSelectedSons(u32 parent_id);
 
 // init a glboal interface to calculate  cache and get the distance 
 // Return: 1 if intilized successfully, otherwise 0.
-u8 InitDistance( u8 fuck);
+u8 InitDistance( );
 
 #ifdef _cplusplus
 }

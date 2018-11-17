@@ -7980,8 +7980,9 @@ int main(int argc, char** argv) {
     start_time += 4000;
     if (stop_soon) goto stop_fuzzing;
   }
-    
-  InitDistance(1);
+   
+  AddSons(1,1);
+  InitDistance();
   while (1) {
 
     u8 skipped_fuzz;

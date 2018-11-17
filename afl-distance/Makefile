@@ -27,10 +27,13 @@ MISC_PATH   = $(PREFIX)/share/afl
 PROGS       = afl-gcc afl-fuzz afl-showmap afl-tmin afl-gotcpu afl-analyze
 SH_PROGS    = afl-plot afl-cmin afl-whatsup
 
-CFLAGS     ?= -O3 -funroll-loops
+CFLAGS     ?= -O3 -funroll-loops  
 CFLAGS     += -Wall -D_FORTIFY_SOURCE=2 -g -Wno-pointer-sign \
 	      -DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 	      -DBIN_PATH=\"$(BIN_PATH)\"
+
+CXXFLAGS   ?= -O0 -funroll-loops
+CXXFLAGS   += -std=c++11 -Wall -g -ggdb
 
 ifneq "$(filter Linux GNU%,$(shell uname))" ""
   LDFLAGS  += -ldl
@@ -70,7 +73,8 @@ afl-as: afl-as.c afl-as.h $(COMM_HDR) | test_x86
 	ln -sf afl-as as
 
 afl-fuzz: afl-fuzz.c distance.o interface.o $(COMM_HDR) | test_x86
-	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) -c $@.c -o $@.o $(LDFLAGS)
+	$(CXX) $(LDFLAGS) distance.o interface.o afl-fuzz.o -o afl-fuzz 
 
 afl-showmap: afl-showmap.c $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
@@ -85,10 +89,10 @@ afl-gotcpu: afl-gotcpu.c $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
 
 distance.o: distance.cpp $(COMM_HDR) | test_x86
-	    $(CXX) $(CXXFLAGS) $(GA_HEADERS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(GA_HEADERS) -c $< -o $@
 
 interface.o: interface.cpp $(COMM_HDR) | test_x86
-	    $(CXX) $(CXXFLAGS) $(GA_HEADERS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(GA_HEADERS) -c $< -o $@
 
 
 

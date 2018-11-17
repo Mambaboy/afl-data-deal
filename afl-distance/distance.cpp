@@ -180,7 +180,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     // get the distance matrix
     for (auto id1 : sonids){
         for (auto id2: sonids){
-                GetEditDis(id1, id2);
+            GetEditDis(id1, id2);
         }
     }
 
