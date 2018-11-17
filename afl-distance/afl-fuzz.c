@@ -7985,8 +7985,8 @@ int main(int argc, char** argv) {
     if (stop_soon) goto stop_fuzzing;
   }
    
-  AddSons(1,1);
-  InitDistance();
+  //AddSons(1,1);
+  //InitDistance();
   while (1) {
 
     u8 skipped_fuzz;

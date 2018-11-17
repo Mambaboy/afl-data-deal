@@ -1,4 +1,4 @@
-#ifndef DISTANCE_h
+#ifndef DISTANCE_H
 #define DISTANCE_H
 
 
@@ -6,8 +6,8 @@
 extern "C" {
 #endif
 
-    #include "afl-fuzz.h"
-    #include "interface.h"
+#include "afl-fuzz.h"
+#include "interface.h"
 
 #ifdef _cplusplus
 }
@@ -49,8 +49,8 @@ class Record{
 		Tree m_tree_; // record the relationship between parent and  sons
 		Distance_record m_disrecord_;  // cache all the distance between inputs
 
-		Record();
-		~Record();
+		Record(){};
+		~Record(){};
         uint32_t * GetSelectedSons(u32 parent_id);	
 		void AddSons(u32 parent_id, u32 son_id);
         void Log (char const *fmt, ...);

@@ -10,7 +10,7 @@ extern "C" {
 
 #include "distance.h"
 
-Record* aflRecord = NULL;
+Record  *aflRecord = nullptr;
 
 u8 InitDistance( ){
     aflRecord =  new Record();
