@@ -85,7 +85,6 @@
 
 EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *out_file,                  /* File to fuzz, if any             */
-          *out_dir,                   /* Working & output directory       */
           *sync_dir,                  /* Synchronization directory        */
           *sync_id,                   /* Fuzzer ID                        */
           *use_banner,                /* Display banner                   */
@@ -227,8 +226,7 @@ static s32 cpu_aff = -1;       	      /* Selected CPU core                */
 static FILE* plot_file;               /* Gnuplot output file              */
 
 
-static struct queue_entry *queue,     /* Fuzzing queue (linked list)      */
-                          *queue_cur, /* Current offset within the queue  */
+static struct queue_entry *queue_cur, /* Current offset within the queue  */
                           *queue_top, /* Top of the list                  */
                           *q_prev100; /* Previous 100 marker              */
 
@@ -760,7 +758,7 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
   q->id           = queued_paths;
   if (!queue_cur){
 	  q->selected=0; // init is 0
-	  AddSon(queue_cur->id, q->id);
+	  AddSons(queue_cur->id, q->id);
   }
   else
       q->selected=1; // these are the init seeds
@@ -7982,8 +7980,8 @@ int main(int argc, char** argv) {
     start_time += 4000;
     if (stop_soon) goto stop_fuzzing;
   }
-
-  Initialize();
+    
+  InitDistance(1);
   while (1) {
 
     u8 skipped_fuzz;

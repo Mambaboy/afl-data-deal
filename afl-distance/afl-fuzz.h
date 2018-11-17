@@ -1,11 +1,8 @@
 #ifndef AFL_FUZZ_H
 #define AFL_FUZZ_H
 
-// 这里是共用函数的申明
+// 这里是afl-fuzz.c的一些声明,纯C
 
-#ifdef _cplusplus
-extern "C" {
-#endif
 
 #include "types.h"
 #include "config.h"
@@ -43,13 +40,10 @@ struct queue_entry {
 
 };
 
-u8* out_dir;
-u8* queue;
+u8 *out_dir;                   /* Working & output directory       */
+struct queue_entry * queue;   /* Fuzzing queue (linked list)      */
 
 
 
-#ifdef _cplusplus
-}
-#endif
 
 #endif // end_AFL_FUZZ_H
