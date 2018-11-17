@@ -43,13 +43,8 @@ typedef std::map< u32, std::set<u32> > Tree;
 // use id can quickly find the entry in queue
 typedef std::map<u32, std::map<u32,u32> > Distance_record;	
 
-uint32_t min(uint32_t a, uint32_t b){
-	return a <= b ? a : b;
-}
-
 class Record{
     public:
-
 		u32 m_inputs_num_; 
 		Tree m_tree_; // record the relationship between parent and  sons
 		Distance_record m_disrecord_;  // cache all the distance between inputs
@@ -66,6 +61,8 @@ class Record{
 };
 
 
+extern u8* out_dir;
+extern struct queue_entry * queue;
 
 
 #endif // end DISTANCE_H

@@ -83,6 +83,8 @@
    really makes no sense to haul them around as function parameters. */
 
 
+u8 *out_dir;                   /* Working & output directory       */
+
 EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *out_file,                  /* File to fuzz, if any             */
           *sync_dir,                  /* Synchronization directory        */
@@ -225,6 +227,8 @@ static s32 cpu_aff = -1;       	      /* Selected CPU core                */
 
 static FILE* plot_file;               /* Gnuplot output file              */
 
+
+struct queue_entry * queue;   /* Fuzzing queue (linked list)      */
 
 static struct queue_entry *queue_cur, /* Current offset within the queue  */
                           *queue_top, /* Top of the list                  */

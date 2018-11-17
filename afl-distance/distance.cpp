@@ -1,6 +1,10 @@
 
 #include "distance.h"
 
+uint32_t min(uint32_t a, uint32_t b){
+	return a <= b ? a : b;
+}
+
 void Record::Log (char const *fmt, ...) {
     static FILE *f = NULL;
     char logfile[512];
