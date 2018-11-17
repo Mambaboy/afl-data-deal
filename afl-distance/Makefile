@@ -42,7 +42,7 @@ else
   TEST_CC   = afl-clang
 endif
 
-COMM_HDR    = alloc-inl.h config.h debug.h types.h
+COMM_HDR    = alloc-inl.h afl-fuzz.h interface.h 
 
 all: test_x86 $(PROGS) afl-as test_build all_done
 
@@ -69,7 +69,7 @@ afl-as: afl-as.c afl-as.h $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
 	ln -sf afl-as as
 
-afl-fuzz: afl-fuzz.c $(COMM_HDR) | test_x86
+afl-fuzz: afl-fuzz.c distance.o interface.o $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
 
 afl-showmap: afl-showmap.c $(COMM_HDR) | test_x86
@@ -84,8 +84,15 @@ afl-analyze: afl-analyze.c $(COMM_HDR) | test_x86
 afl-gotcpu: afl-gotcpu.c $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
 
-ifndef AFL_NO_X86
+distance.o: distance.cpp $(COMM_HDR) | test_x86
+	    $(CXX) $(CXXFLAGS) $(GA_HEADERS) -c $< -o $@
 
+interface.o: interface.cpp $(COMM_HDR) | test_x86
+	    $(CXX) $(CXXFLAGS) $(GA_HEADERS) -c $< -o $@
+
+
+
+ifndef AFL_NO_X86
 test_build: afl-gcc afl-as afl-showmap
 	@echo "[*] Testing the CC wrapper and instrumentation output..."
 	unset AFL_USE_ASAN AFL_USE_MSAN; AFL_QUIET=1 AFL_INST_RATIO=100 AFL_PATH=. ./$(TEST_CC) $(CFLAGS) test-instr.c -o test-instr $(LDFLAGS)
