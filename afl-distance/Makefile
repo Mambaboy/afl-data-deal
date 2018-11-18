@@ -74,8 +74,8 @@ afl-as: afl-as.c afl-as.h $(COMM_HDR) | test_x86
 	ln -sf afl-as as
 
 afl-fuzz: afl-fuzz.c distance.o interface.o $(COMM_HDR) | test_x86
-	$(CC) $(CFLAGS) -c $@.c -o $@.o $(LDFLAGS)
-	$(CXX) $(CXXFLAGS) $@.o distance.o interface.o -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) -c $@.c -o $@.o
+	$(CXX) $@.o distance.o interface.o -o $@ $(LDFLAGS)
 
 
 afl-showmap: afl-showmap.c $(COMM_HDR) | test_x86

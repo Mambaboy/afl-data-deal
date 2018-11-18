@@ -1,13 +1,4 @@
-#ifdef _cplusplus
-extern "C" {
-#endif
-
 #include "interface.h"
-
-#ifdef _cplusplus
-}
-#endif
-
 #include "distance.h"
 
 Record  *aflRecord = nullptr;

@@ -1,14 +1,13 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+#include "afl-fuzz.h"
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "afl-fuzz.h"
-
-void AddSons(u32 parent_id, u32 son_id);
+extern void AddSons(u32 parent_id, u32 son_id);
 
 // get the selected id of sons
 // return a dynamic  u32[], the last is 0x00
@@ -19,7 +18,7 @@ void AddSons(u32 parent_id, u32 son_id);
 // Return: 1 if intilized successfully, otherwise 0.
 u8 InitDistance();
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

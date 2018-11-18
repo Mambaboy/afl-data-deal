@@ -188,4 +188,5 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
         }
     }
 
+    return 0;
 }

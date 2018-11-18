@@ -2,14 +2,14 @@
 #define DISTANCE_H
 
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "afl-fuzz.h"
 #include "interface.h"
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 
