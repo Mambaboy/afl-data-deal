@@ -39,9 +39,8 @@ def get_cluster_indices(cluster_assignments):
         indices.append(np.where(cluster_assignments == cluster_number)[0])
     return indices
 
-def main( a, b):	
-    print a
-    print b
+def main( a):	
+    print a.shape
     arr = [[0., 21.6, 22.6, 63.9, 65.1, 17.7, 99.2],
 	    [21.6, 0., 1., 42.3, 43.5, 3.9, 77.6],
 	    [22.6, 1., 0, 41.3, 42.5, 4.9, 76.6],
@@ -51,8 +50,8 @@ def main( a, b):
 	    [99.2, 77.6, 76.6, 35.3, 34.1, 81.5, 0.]]
     arr= np.array(arr)
     hierarchy_cluster(arr)
-    return [1,2,3,4]
+    return arr.astype(np.float)
     
 if __name__ == "__main__":
-    main(1,2)
+    main()
 
