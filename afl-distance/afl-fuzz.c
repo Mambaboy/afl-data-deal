@@ -151,9 +151,9 @@ static s32 shm_id;                    /* ID of the SHM region             */
 static volatile u8 stop_soon,         /* Ctrl-C pressed?                  */
                    clear_screen = 1,  /* Window resized?                  */
                    child_timed_out;   /* Traced process timed out?        */
+u32 queued_paths;  /* Total number of queued testcases */ 
 
-EXP_ST u32 queued_paths,              /* Total number of queued testcases */
-           queued_variable,           /* Testcases with variable behavior */
+EXP_ST u32 queued_variable,           /* Testcases with variable behavior */
            queued_at_start,           /* Total number of initial inputs   */
            queued_discovered,         /* Items discovered during this run */
            queued_imported,           /* Items imported via -S            */
@@ -760,7 +760,7 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
   q->passed_det   = passed_det;
 
   q->id           = queued_paths;
-  if (!queue_cur){
+  if (queue_cur){
 	  q->selected=0; // init is 0
 	  AddSons(queue_cur->id, q->id);
   }
@@ -4447,7 +4447,7 @@ static u32 next_p2(u32 val) {
    file size, to keep the stage short and sweet. */
 
 static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
-
+    return 0;
   static u8 tmp[64];
   static u8 clean_trace[MAP_SIZE];
 
@@ -7980,13 +7980,12 @@ int main(int argc, char** argv) {
   /* Woop woop woop */
 
   if (!not_on_tty) {
-    sleep(4);
-    start_time += 4000;
+    sleep(0.1);
+    start_time += 400;
     if (stop_soon) goto stop_fuzzing;
   }
    
-  //AddSons(1,1);
-  //InitDistance();
+  InitDistance();
   while (1) {
 
     u8 skipped_fuzz;
@@ -8030,6 +8029,8 @@ int main(int argc, char** argv) {
     }
 
     skipped_fuzz = fuzz_one(use_argv);
+    
+    GetSelectedSons(queue_cur->id);
 
     if (!stop_soon && sync_id && !skipped_fuzz) {
       

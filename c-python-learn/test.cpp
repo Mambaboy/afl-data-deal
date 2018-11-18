@@ -3,7 +3,7 @@
 #include <iostream>
 using namespace std;
 int init_numpy() {
-    import_array(); 
+    import_array(); // 需要加入 -fpermissive 编译参数
     return 0;
 }
 int main()
@@ -50,7 +50,8 @@ int main()
         return 0;
     }
     cout << "[INFO] Get function (test_add) succeed." << endl;
-
+    
+    // 参数是一个numpy
     //设置 numpy格式的参数 PyArrayObject
     double CArrays[3][3] = {{1.3, 2.4, 5.6}, {4.5, 7.8, 8.9}, {1.7, 0.4, 0.8}};
     npy_intp Dims[2] = {3, 3};
@@ -63,29 +64,32 @@ int main()
     // 调用函数
     PyObject* pRet = PyObject_CallObject(pv, ArgArray);
 
-    // 获取返回的list参数
-    if (pRet)  // 验证是否调用成功
-    {
-        if (PyList_Check(pRet)){
-            int SizeOfList=PyList_Size(pRet);//List对象的大小，这里SizeOfList = 3
-			int i;
-			for( i = 0; i < SizeOfList; i++){
-				PyObject *Item = PyList_GetItem(pRet, i);//获取List对象中的每一个元素
-				cout << PyInt_AsLong(Item) <<" "; //输出元素
-				Py_DECREF(Item); //释放空间
-			 }
+    //// 获取返回的list参数
+    //if (pRet)  // 验证是否调用成功
+    //{
+    //    if (PyList_Check(pRet)){
+    //        int SizeOfList=PyList_Size(pRet);//List对象的大小，这里SizeOfList = 3
+	//		int i;
+	//		for( i = 0; i < SizeOfList; i++){
+	//			PyObject *Item = PyList_GetItem(pRet, i);//获取List对象中的每一个元素
+	//			cout << PyInt_AsLong(Item) <<" "; //输出元素
+	//			Py_DECREF(Item); //释放空间
+	//		 }
 
-            //cout << "result:" << result << "\n";
-        }
-    }
+    //        //cout << "result:" << result << "\n";
+    //    }
+    //}
+    
     if (pRet){
         PyArrayObject *ListItem = (PyArrayObject *)(pRet);
         int Rows = ListItem->dimensions[0], columns = ListItem->dimensions[1];
 		for( int Index_m = 0; Index_m < Rows; Index_m++){
             for(int Index_n = 0; Index_n < columns; Index_n++){
-				//访问数据，Index_m 和 Index_n 分别是数组元素的坐标，乘上相应维度的步长，
+				//访问数据
+                //Index_m 和 Index_n 分别是数组元素的坐标，乘上相应维度的步长，
 				//即可以访问数组元素
-                cout<<*(double*)(ListItem->data + Index_m * ListItem->strides[0] + Index_n * ListItem->strides[1])<<" ";
+                double x = *(double *)(ListItem->data + Index_m * ListItem->strides[0] + Index_n * ListItem->strides[1]);
+                cout<<x<<" ";
             }
             cout<<endl;
         }

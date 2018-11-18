@@ -45,25 +45,25 @@ typedef std::map<u32, std::map<u32,u32> > Distance_record;
 
 class Record{
     public:
-		u32 m_inputs_num_; 
-		Tree m_tree_; // record the relationship between parent and  sons
-		Distance_record m_disrecord_;  // cache all the distance between inputs
+        u32 m_inputs_num_; 
+	    Tree m_tree_; // record the relationship between parent and  sons
+	    Distance_record m_disrecord_;  // cache all the distance between inputs
 
-		Record(){};
-		~Record(){};
+	    Record(){};
+	    ~Record(){};
         uint32_t * GetSelectedSons(u32 parent_id);	
-		void AddSons(u32 parent_id, u32 son_id);
+        void AddSons(u32 parent_id, u32 son_id);
         void Log (char const *fmt, ...);
-		uint32_t GetEditDis(uint32_t id1, uint32_t id2);
-		uint32_t CalDis(u8* input1, u8* input2, uint32_t i, uint32_t j, Matrix matrix_each);
-		u8* ReadInput(u8* fname, u32 len);
+        uint32_t GetEditDis(uint32_t id1, uint32_t id2);
+        uint32_t CalDis(u8* input1, u8* input2, uint32_t i, uint32_t j, Matrix matrix_each);
+        u8* ReadInput(u8* fname, u32 len);
 
 };
 
 
 extern u8* out_dir;
 extern struct queue_entry * queue;
-
+extern u32 queued_paths;
 
 #endif // end DISTANCE_H
 

@@ -20,7 +20,7 @@ linkage_method={"complete"}
 class AFLCluster():
     def __init__(self):
         # set the data dir and get an ordered inputs list
-        self.datadir="/dev/shm/collect-fuzzed/fuzzed"
+        self.datadir="/dev/shm/collect-fuzzed/queue"
         self.inputs=None
         self._get_inputs()
         self.inputs_num=len(self.inputs)
@@ -117,10 +117,34 @@ class AFLCluster():
         P=sch.dendrogram(Z, p=12, truncate_mode="lastp", leaf_rotation=90.,show_leaf_counts=True, leaf_font_size=8., show_contracted=True, labels=None)
         plt.savefig("result"+name+".png")
 
+def get_distance(id1, id2):
+
+        datadir="/dev/shm/afl-distance/queue"
+        inputs = os.listdir(datadir)
+        try:
+            inputs.remove(".state")
+        except:
+            pass
+        inputs.sort()
+
+        l.info("ready to calculate the distance")
+
+        for i in range(len(inputs)):
+            for j in range(i+1, len(inputs)):
+                with open( os.path.join(datadir,inputs[i]), "rb") as f1:
+                    content1 = f1.read()
+                    #fsize1 = os.path.getsize(file1)
+                with open( os.path.join(datadir,inputs[j]), "rb") as f2:
+                    content2 = f2.read()
+                    #fsize2 = os.path.getsize(file2)
+                distance = Levenshtein.distance(content1, content2)
+                print("the distance between %s and %s is %d "%(inputs[i][0:10], inputs[j][0:10], distance))
+
 
 def main():
-    aflcluster=AFLCluster()
-    aflcluster.hierarchy_cluster()
+    #aflcluster=AFLCluster()
+    #aflcluster.hierarchy_cluster()
+    get_distance(0,1)
 
 if __name__ == "__main__":
     main()

@@ -26,15 +26,13 @@ void Record::AddSons(u32 parent_id, u32 son_id){
         std::set<u32> son_ids;
         son_ids.insert(son_id);
         //m_tree_.insert(std::make_pair(parent_id,son_id));
-        Log("new: insert son_id of %s to parent_id of %s\n", son_id,parent_id);
+        Log("new: insert son_id of %d to parent_id of %d\n", son_id,parent_id);
     }
     else{
         m_tree_[parent_id].insert(son_id);
-        Log("insert son_id of %s to parent_id of %s\n", son_id,parent_id);
+        Log("insert son_id of %d to parent_id of %d\n", son_id,parent_id);
     }
 }	
-
-
 
 uint32_t Record::GetEditDis(u32 id1, u32 id2){
     
@@ -55,13 +53,15 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
 
     u32 d1,d2;
     d1=d2=0;
-	// read from old
-    if (m_disrecord_.find(q1->id)!=m_disrecord_.end()){
-        d1=m_disrecord_[q1->id][q2->id]; 		
-    }
-    if (m_disrecord_.find(q2->id)==m_disrecord_.end()){
-        d2=m_disrecord_[q2->id][q1->id]; 		
-    }
+    // read from old
+    if (m_disrecord_.find(id1)!=m_disrecord_.end())
+        if (m_disrecord_[id1].find(id2)!=m_disrecord_[id1].end())
+            d1=m_disrecord_[id1][id2]; 		
+    
+    if (m_disrecord_.find(id2)!=m_disrecord_.end())
+        if (m_disrecord_[id2].find(id1)!=m_disrecord_[id2].end())
+            d2=m_disrecord_[id2][id1]; 		
+    
     if (d1!=d2){
         Log("there is some thing wrong for %s and %s", q1->fname, q2->fname);
         exit(1);
@@ -97,32 +97,32 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
     free(input1);
     free(input2);
 
-    Log("the distance between %s and %s is %d\n", q1->fname,q2->fname,distance);
+    Log("the distance between %d and %d is %d\n", q1->id,q2->id,distance);
 
     // use insert will not overwirte
     // use [] can overwrite
     // update the q1
-    if (m_disrecord_.find(q1->id)==m_disrecord_.end()){
+    if (m_disrecord_.find(id1)==m_disrecord_.end()){
         std::map<u32 ,u32> record;
-        record.insert( std::make_pair(q2->id, distance) );
-        m_disrecord_[q1->id] = record; 		
+        record.insert( std::make_pair(id2, distance) );
+        m_disrecord_[id1] = record; 		
     }
     else{
         // update the  distance from q2 to q1 
         // here will not overwrite
-        m_disrecord_[q1->id].insert(std::make_pair(q2->id,distance)); 
+        m_disrecord_[id1].insert(std::make_pair(id2,distance)); 
     }
 
     // update the q2
-    if (m_disrecord_.find(q2->id)==m_disrecord_.end()){
+    if (m_disrecord_.find(id2)==m_disrecord_.end()){
         std::map<u32, u32> record;
-        record.insert(std::make_pair(q1->id,distance));
-        m_disrecord_[q2->id] = record; 		
+        record.insert(std::make_pair(id1,distance));
+        m_disrecord_[id2] = record; 		
     }
     else{
         // update the distance from q1 to q2
         // here will not overwrite
-        m_disrecord_[q2->len].insert(std::make_pair(q1->len,distance)); 
+        m_disrecord_[id2].insert(std::make_pair(id1,distance)); 
     }
 
     return distance;
@@ -133,7 +133,7 @@ uint32_t Record::CalDis(u8* input1, u8* input2, uint32_t i, uint32_t j, Matrix m
     if (matrix_each.label[i][j]==1)
         return matrix_each.content[i][j];
 
-    Log("calculte (%d,%d)\n", i,j);
+    //Log("calculte (%d,%d)\n", i,j);
     uint32_t distance;
     if(i == 0){
         distance=j;
@@ -173,20 +173,34 @@ u8* Record::ReadInput(u8* fname, u32 len){
 
 uint32_t* Record::GetSelectedSons(u32 parent_id){
     //1. get the sons id
-    std::set<u32> sonids;
-    if (m_tree_.find(parent_id) == m_tree_.end())
-            return (u32*)0;
-    else{
-            sonids = m_tree_[parent_id];
-    }
+    //std::set<u32> sonids;
+    //if (m_tree_.find(parent_id) == m_tree_.end())
+    //    return (u32*)0;
+    //else{
+    //    sonids = m_tree_[parent_id];
+    //}
 
     //2. calculate the distance between each other in the sons
     // get the distance matrix
-    for (auto id1 : sonids){
-        for (auto id2: sonids){
-            GetEditDis(id1, id2);
+    //for (auto id1 : sonids){
+    //    for (auto id2: sonids){
+    //        GetEditDis(id1, id2);
+    //    }
+    //}
+   
+    
+
+    uint32_t i, j, distance ;
+    double *data=(double*) malloc(queued_paths * queued_paths * sizeof(double));
+    for( i=0; i < queued_paths; i++){
+        for(j=i; j < queued_paths; j++){
+            distance = GetEditDis(i,j);
+            data[i*queued_paths + j]=distance;
+            data[j*queued_paths + i]=distance;
         }
     }
+    free(data);
+    //3. print the distance to the python interface
 
     return 0;
 }
