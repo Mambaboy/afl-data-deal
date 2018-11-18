@@ -1,3 +1,5 @@
 afl-close-trim 
 afl-orig
 *.png
+plugincluster.pyc
+DefCC-libs2eplugins/
