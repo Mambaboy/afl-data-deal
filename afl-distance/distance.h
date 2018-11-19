@@ -56,19 +56,30 @@ class Record{
 	    ~Record(){};
         uint32_t * GetSelectedSons(u32 parent_id);	
         void AddSons(u32 parent_id, u32 son_id);
-        void Log (char const *fmt, ...);
         uint32_t GetEditDis(uint32_t id1, uint32_t id2);
         uint32_t CalDis(u8* input1, u8* input2, uint32_t i, uint32_t j, Matrix matrix_each);
         u8* ReadInput(u8* fname, u32 len);
 
 };
 
-uint8_t init_numpy();
-uint32_t *callpython(uint32_t * data, u32 inputnum);
+// 函数
+void Log (char const *fmt, ...);
+uint8_t InitNumpy();
+uint32_t *CallPython(uint32_t * data, u32 inputnum);
+void InitPython();
+
+//变量
+static uint8_t initpython=0;
+static PyObject* pv; // the target fuction
+
+
+// 外部的函数和变量
+extern void show_stats(void);
 
 extern u8* out_dir;
 extern struct queue_entry * queue;
 extern u32 queued_paths;
+
 
 #endif // end DISTANCE_H
 

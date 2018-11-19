@@ -5,7 +5,7 @@ uint32_t min(uint32_t a, uint32_t b){
 	return a <= b ? a : b;
 }
 
-void Record::Log (char const *fmt, ...) {
+void Log (char const *fmt, ...) {
     static FILE *f = NULL;
     char logfile[512];
     memset(logfile, 0, 512);
@@ -195,6 +195,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
             distance = GetEditDis(i,j);
             data[i*queued_paths + j]=distance;
             data[j*queued_paths + i]=distance;
+            show_stats();
         }
     }
 
@@ -209,7 +210,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     //}
     //exit(1);
     uint32_t result; 
-    result = callpython(data, queued_paths);
+    result = CallPython(data, queued_paths);
     free(data);
     //3. print the distance to the python interface
 
@@ -217,20 +218,23 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
 }
 
 
-uint8_t init_numpy() {
+uint8_t InitNumpy() {
     import_array(); // 需要加入 -fpermissive 编译参数
     return 0;
 }
-uint32_t * callpython(uint32_t* data, u32 inputnum)
-{
+
+void InitPython(){
+    if (initpython==1)
+       return;
     Py_Initialize();    // 初始化python 虚拟机
     if (!Py_IsInitialized()) {
+        Log("Cannot initialize python interface, quitting\n");
         cout << "Cannot initialize python interface, quitting" << "\n";
         exit(1);
     }
     
     //初始化 numpy 执行环境，主要是导入包，python2.7用void返回类型，python3.0以上用int返回类型
-    init_numpy();
+    InitNumpy();
     
     // 将Python工作路径切换到待调用模块所在目录，一定要保证路径名的正确性
     string path = "/home/xiaosatianyu/workspace/git/fuzz/afl-data-deal";
@@ -256,20 +260,32 @@ uint32_t * callpython(uint32_t* data, u32 inputnum)
     PyObject* pModule = PyImport_Import(moduleName);
     if (!pModule) // 加载模块失败
     {
+        Log("[ERROR] Python get module failed.\n");
         cout << "[ERROR] Python get module failed." << endl;
         exit(1);
     }
     cout << "[INFO] Python get module succeed." << endl;
+    Log("[INFO] Python get module succeed.\n");
 
     // 加载函数
-    PyObject* pv = PyObject_GetAttrString(pModule, "getcluster");
+    pv = PyObject_GetAttrString(pModule, "getcluster");
     if (!pv || !PyCallable_Check(pv))  // 验证是否加载成功
     {
+        Log("[ERROR] Can't find funftion (test_add)\n");
         cout << "[ERROR] Can't find funftion (test_add)" << endl;
         exit(1);
     }
     cout << "[INFO] Get function (test_add) succeed." << endl;
-    
+    Log( "[INFO] Get function (test_add) succeed.\n");
+   
+    // init ok
+    initpython=1;
+
+}
+
+
+uint32_t * CallPython(uint32_t* data, u32 inputnum){
+    InitPython(); 
     npy_intp Dims[2] = {inputnum, inputnum};
     //生成包含这个多维数组的PyObject对象，使用PyArray_SimpleNewFromData函数，第一个参数2表示维度，第二个为维度数组Dims,第三个参数指出数组的类型，第四个参数为数组
     PyObject *PyArray  = PyArray_SimpleNewFromData(2, Dims, NPY_UINT32 , data);
@@ -291,12 +307,12 @@ uint32_t * callpython(uint32_t* data, u32 inputnum)
             //m 和 n 分别是数组元素的坐标，乘上相应维度的步长，
             uint32_t x = *(uint32_t *)(result->data + m * result->strides[0]);
             selected_ids[m]=x;
-            cout.width(7);
-            cout<<x<<" ";
+            //cout.width(7);
+            //cout<<x<<" ";
         }
     }
     cout << "end\n";
-    Py_Finalize();      // 释放资源
-    selected_ids[num]=(uint32_t)-1; 
+    //Py_Finalize();      // 释放资源
+    selected_ids[num]=(uint32_t)(-1); 
     return selected_ids;
 }

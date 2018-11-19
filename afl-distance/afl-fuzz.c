@@ -1271,11 +1271,11 @@ static void update_bitmap_score(struct queue_entry* q) {
    all fuzzing steps. */
 
 static void cull_queue(void) {
-
   
+  stage_name = "cull";
   struct queue_entry* q;
   static u8 temp_v[MAP_SIZE >> 3];
-  u32 i;
+  u32 i,j;
    
   if (queued_paths < 100)
       return;
@@ -1286,14 +1286,16 @@ static void cull_queue(void) {
     q = q->next;
   }
   i=0;
-  while(selected_ids[i++]!= (uint32_t)(-1)){
+  while( selected_ids[i]!= (uint32_t)(-1) ){
         q=queue;
-        while (i--) {
+        j=selected_ids[i];
+        while (j--) {
             q = q->next;
         }      
         q->favored=1;
         q->was_fuzzed=0;
-  }
+        i++;
+      }
   free(selected_ids);
   return;
 
@@ -2528,8 +2530,6 @@ static void write_with_gap(void* mem, u32 len, u32 skip_at, u32 skip_len) {
 
 }
 
-
-static void show_stats(void);
 
 /* Calibrate a new test case. This is done when processing the input directory
    to warn about flaky or otherwise problematic test cases early on; and when
@@ -3874,7 +3874,7 @@ static void check_term_size(void);
 /* A spiffy retro stats screen! This is called every stats_update_freq
    execve() calls, plus in several other circumstances. */
 
-static void show_stats(void) {
+void show_stats(void) {
 
   static u64 last_stats_ms, last_plot_ms, last_ms, last_execs;
   static double avg_exec;
@@ -8065,7 +8065,6 @@ int main(int argc, char** argv) {
 
     queue_cur = queue_cur->next;
     current_entry++;
-
   }
 
   if (queue_cur) show_stats();
@@ -8102,5 +8101,6 @@ stop_fuzzing:
   exit(0);
 
 }
+
 
 #endif /* !AFL_LIB */
