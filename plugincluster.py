@@ -13,7 +13,7 @@ linkage_method={"complete"}
 
             
 def hierarchy_cluster(dismatrix):
-    
+    print "first" 
     for item in linkage_method:
         #l.warn("using %s method", item)
         Z = sch.linkage(dismatrix, method=item)
@@ -23,6 +23,7 @@ def hierarchy_cluster(dismatrix):
         #r2= sch.inconsistent(Z)
         #l.info(r[1])
     print "ok"
+    return dismatrix
 
 def get_cluster_indices(cluster_assignments):
     '''映射每一类至原数据索引
@@ -39,18 +40,8 @@ def get_cluster_indices(cluster_assignments):
         indices.append(np.where(cluster_assignments == cluster_number)[0])
     return indices
 
-def main( a):	
-    print a.shape
-    arr = [[0., 21.6, 22.6, 63.9, 65.1, 17.7, 99.2],
-	    [21.6, 0., 1., 42.3, 43.5, 3.9, 77.6],
-	    [22.6, 1., 0, 41.3, 42.5, 4.9, 76.6],
-	    [63.9, 42.3, 41.3, 0., 1.2, 46.2, 35.3],
-	    [65.1, 43.5, 42.5, 1.2, 0., 47.4, 34.1],
-	    [17.7, 3.9, 4.9, 46.2, 47.4, 0, 81.5],
-	    [99.2, 77.6, 76.6, 35.3, 34.1, 81.5, 0.]]
-    arr= np.array(arr)
+def main():	
     hierarchy_cluster(arr)
-    return arr.astype(np.float)
     
 if __name__ == "__main__":
     main()

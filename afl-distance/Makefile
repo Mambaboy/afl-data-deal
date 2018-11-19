@@ -33,7 +33,7 @@ CFLAGS     += -Wall -D_FORTIFY_SOURCE=2 -g -Wno-pointer-sign \
 	      -DBIN_PATH=\"$(BIN_PATH)\"
 
 CXXFLAGS   ?= -O0 -funroll-loops
-CXXFLAGS   += -std=c++11 -Wall -g -ggdb
+CXXFLAGS   += -std=c++11 -Wall -g -ggdb 
 
 ifneq "$(filter Linux GNU%,$(shell uname))" ""
   LDFLAGS  += -ldl
@@ -74,9 +74,8 @@ afl-as: afl-as.c afl-as.h $(COMM_HDR) | test_x86
 	ln -sf afl-as as
 
 afl-fuzz: afl-fuzz.c distance.o interface.o $(COMM_HDR) | test_x86
-	$(CC) $(CFLAGS) -c $@.c -o $@.o
-	$(CXX) $@.o distance.o interface.o -o $@ $(LDFLAGS)
-
+	$(CC) $(CFLAGS) -c $@.c -o $@.o  
+	$(CXX) $@.o distance.o interface.o -o $@ $(LDFLAGS) -I /usr/include/python2.7 -L /usr/lib/python2.7/config-x86_64-linux-gpu -lpython2.7 -fpermissive 
 
 afl-showmap: afl-showmap.c $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
@@ -91,10 +90,10 @@ afl-gotcpu: afl-gotcpu.c $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
 
 distance.o: distance.cpp $(COMM_HDR) | test_x86
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -I /usr/include/python2.7 -L /usr/lib/python2.7/config-x86_64-linux-gpu -lpython2.7 -fpermissive 
 
 interface.o: interface.cpp $(COMM_HDR) | test_x86
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -I /usr/include/python2.7 -L /usr/lib/python2.7/config-x86_64-linux-gpu -lpython2.7 -fpermissive 
 
 
 

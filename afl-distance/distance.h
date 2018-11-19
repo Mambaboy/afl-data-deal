@@ -26,6 +26,9 @@ extern "C" {
 #include <fcntl.h>
 #include <unistd.h>
 
+#include  <python2.7/Python.h>
+#include <numpy/arrayobject.h>
+
 // the matrix_each for each distance betwwen two input
 struct Matrix{
     uint32_t row;
@@ -60,6 +63,8 @@ class Record{
 
 };
 
+uint8_t init_numpy();
+uint8_t callpython(uint32_t * data, u32 inputnum);
 
 extern u8* out_dir;
 extern struct queue_entry * queue;
