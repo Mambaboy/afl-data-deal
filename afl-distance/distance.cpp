@@ -208,12 +208,12 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     //    }
     //}
     //exit(1);
-    
-    callpython(data, queued_paths);
+    uint32_t result; 
+    result = callpython(data, queued_paths);
     free(data);
     //3. print the distance to the python interface
 
-    return 0;
+    return result;
 }
 
 
@@ -238,6 +238,12 @@ uint32_t * callpython(uint32_t* data, u32 inputnum)
     const char* add_cmd_cstr = add_cmd.c_str();
     PyRun_SimpleString("import sys");
     PyRun_SimpleString(add_cmd_cstr);
+    
+    // 将Python工作路径切换到待调用模块所在目录，一定要保证路径名的正确性
+    string path2 = "/home/xiaosatianyu/learning";
+    string add_cmd2 = string("sys.path.append(\"") + path2 + "\")";
+    const char* add_cmd_cstr2 = add_cmd2.c_str();
+    PyRun_SimpleString(add_cmd_cstr2);
 
     // 添加虚拟python路径
     string vpython = "/home/xiaosatianyu/.virtualenvs/xiaosa/local/lib/python2.7/site-packages";

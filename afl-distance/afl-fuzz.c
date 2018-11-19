@@ -1285,15 +1285,16 @@ static void cull_queue(void) {
     q->favored = 0;
     q = q->next;
   }
-  while(selected_ids[id]!= (uint32_t)(-1)){
+  i=0;
+  while(selected_ids[i++]!= (uint32_t)(-1)){
         q=queue;
-        while (id--) {
+        while (i--) {
             q = q->next;
         }      
         q->favored=1;
         q->was_fuzzed=0;
   }
-
+  free(selected_ids);
   return;
 
   if (dumb_mode || !score_changed) return;
