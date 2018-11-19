@@ -64,7 +64,7 @@ class Record{
 };
 
 uint8_t init_numpy();
-uint8_t callpython(uint32_t * data, u32 inputnum);
+uint32_t *callpython(uint32_t * data, u32 inputnum);
 
 extern u8* out_dir;
 extern struct queue_entry * queue;

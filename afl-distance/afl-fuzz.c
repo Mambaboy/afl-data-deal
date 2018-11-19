@@ -752,9 +752,6 @@ static void mark_as_redundant(struct queue_entry* q, u8 state) {
 
 static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
 
-    if (queued_paths >10 )
-        GetSelectedSons(0);
-
   struct queue_entry* q = ck_alloc(sizeof(struct queue_entry));
 
   q->fname        = fname;
@@ -1275,9 +1272,29 @@ static void update_bitmap_score(struct queue_entry* q) {
 
 static void cull_queue(void) {
 
+  
   struct queue_entry* q;
   static u8 temp_v[MAP_SIZE >> 3];
   u32 i;
+   
+  if (queued_paths < 100)
+      return;
+  uint32_t* selected_ids =  GetSelectedSons(0);
+  uint32_t id;
+  while (q) {
+    q->favored = 0;
+    q = q->next;
+  }
+  while(selected_ids[id]!= (uint32_t)(-1)){
+        q=queue;
+        while (id--) {
+            q = q->next;
+        }      
+        q->favored=1;
+        q->was_fuzzed=0;
+  }
+
+  return;
 
   if (dumb_mode || !score_changed) return;
 
@@ -7993,7 +8010,6 @@ int main(int argc, char** argv) {
 
     u8 skipped_fuzz;
 
-    cull_queue();
 
     if (!queue_cur) {
 
@@ -8031,9 +8047,9 @@ int main(int argc, char** argv) {
 
     }
 
+    cull_queue();
     skipped_fuzz = fuzz_one(use_argv);
     
-    GetSelectedSons(queue_cur->id);
 
     if (!stop_soon && sync_id && !skipped_fuzz) {
       

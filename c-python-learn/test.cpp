@@ -33,7 +33,7 @@ int main()
     
     
     // 加载模块
-    PyObject* moduleName = PyString_FromString("plugincluster"); //模块名，不是文件名
+    PyObject* moduleName = PyString_FromString("fuck"); //模块名，不是文件名
     PyObject* pModule = PyImport_Import(moduleName);
     if (!pModule) // 加载模块失败
     {
@@ -43,7 +43,7 @@ int main()
     cout << "[INFO] Python get module succeed." << endl;
 
     // 加载函数
-    PyObject* pv = PyObject_GetAttrString(pModule, "main");
+    PyObject* pv = PyObject_GetAttrString(pModule, "fuck");
     if (!pv || !PyCallable_Check(pv))  // 验证是否加载成功
     {
         cout << "[ERROR] Can't find funftion (test_add)" << endl;

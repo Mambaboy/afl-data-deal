@@ -211,7 +211,6 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     
     callpython(data, queued_paths);
     free(data);
-    exit(1);
     //3. print the distance to the python interface
 
     return 0;
@@ -222,17 +221,16 @@ uint8_t init_numpy() {
     import_array(); // 需要加入 -fpermissive 编译参数
     return 0;
 }
-uint8_t callpython(uint32_t* data, u32 inputnum)
+uint32_t * callpython(uint32_t* data, u32 inputnum)
 {
     Py_Initialize();    // 初始化python 虚拟机
     if (!Py_IsInitialized()) {
         cout << "Cannot initialize python interface, quitting" << "\n";
-        return false;
+        exit(1);
     }
     
     //初始化 numpy 执行环境，主要是导入包，python2.7用void返回类型，python3.0以上用int返回类型
     init_numpy();
-
     
     // 将Python工作路径切换到待调用模块所在目录，一定要保证路径名的正确性
     string path = "/home/xiaosatianyu/workspace/git/fuzz/afl-data-deal";
@@ -247,33 +245,26 @@ uint8_t callpython(uint32_t* data, u32 inputnum)
     const char* vpython_cstr = vpython_sys.c_str();
     PyRun_SimpleString(vpython_cstr);
     
-    
     // 加载模块
     PyObject* moduleName = PyString_FromString("plugincluster"); //模块名，不是文件名
     PyObject* pModule = PyImport_Import(moduleName);
     if (!pModule) // 加载模块失败
     {
         cout << "[ERROR] Python get module failed." << endl;
-        return 0;
+        exit(1);
     }
     cout << "[INFO] Python get module succeed." << endl;
 
     // 加载函数
-    PyObject* pv = PyObject_GetAttrString(pModule, "hierarchy_cluster");
+    PyObject* pv = PyObject_GetAttrString(pModule, "getcluster");
     if (!pv || !PyCallable_Check(pv))  // 验证是否加载成功
     {
         cout << "[ERROR] Can't find funftion (test_add)" << endl;
-        return 0;
+        exit(1);
     }
     cout << "[INFO] Get function (test_add) succeed." << endl;
     
-    // 参数是一个numpy
-    //设置 numpy格式的参数 PyArrayObject
-    //uint32_t CArrays[3][3] = {{1, 2, 5}, {4, 7, 8}, {1, 4, 8}};
-    //npy_intp Dims[2] = {3, 3};
-    
     npy_intp Dims[2] = {inputnum, inputnum};
-    
     //生成包含这个多维数组的PyObject对象，使用PyArray_SimpleNewFromData函数，第一个参数2表示维度，第二个为维度数组Dims,第三个参数指出数组的类型，第四个参数为数组
     PyObject *PyArray  = PyArray_SimpleNewFromData(2, Dims, NPY_UINT32 , data);
     PyObject *ArgArray = PyTuple_New(1);
@@ -281,43 +272,25 @@ uint8_t callpython(uint32_t* data, u32 inputnum)
 
     // 调用函数
     PyObject* pRet = PyObject_CallObject(pv, ArgArray);
-
-    //// 获取返回的list参数
-    //if (pRet)  // 验证是否调用成功
-    //{
-    //    if (PyList_Check(pRet)){
-    //        int SizeOfList=PyList_Size(pRet);//List对象的大小，这里SizeOfList = 3
-	//		int i;
-	//		for( i = 0; i < SizeOfList; i++){
-	//			PyObject *Item = PyList_GetItem(pRet, i);//获取List对象中的每一个元素
-	//			cout << PyInt_AsLong(Item) <<" "; //输出元素
-	//			Py_DECREF(Item); //释放空间
-	//		 }
-
-    //        //cout << "result:" << result << "\n";
-    //    }
-    //}
     
+    // 返回的是一个一维的 聚类结果
+    uint32_t * selected_ids;
+    uint32_t num;
     if (pRet){
-        PyArrayObject *ListItem = (PyArrayObject *)(pRet);
-        uint32_t Rows = ListItem->dimensions[0], columns = ListItem->dimensions[1];
-        for( uint32_t Index_m = 0; Index_m < Rows; Index_m++){
-            for(uint32_t Index_n = 0; Index_n < columns; Index_n++){
-                //访问数据
-                //Index_m 和 Index_n 分别是数组元素的坐标，乘上相应维度的步长，
-                //即可以访问数组元素
-                uint32_t x = *(uint32_t *)(ListItem->data + Index_m * ListItem->strides[0] + Index_n * ListItem->strides[1]);
-                cout.width(7);
-                cout<<x<<" ";
-            }
-            cout<<endl;
+        PyArrayObject *result = (PyArrayObject *)(pRet);
+        num = result->dimensions[0];
+        selected_ids = malloc( (num+1)*sizeof(uint32_t)); // free in the later
+        for( uint32_t m = 0; m < num; m++){
+            //访问数据
+            //m 和 n 分别是数组元素的坐标，乘上相应维度的步长，
+            uint32_t x = *(uint32_t *)(result->data + m * result->strides[0]);
+            selected_ids[m]=x;
+            cout.width(7);
+            cout<<x<<" ";
         }
-
     }
-
     cout << "end\n";
-
     Py_Finalize();      // 释放资源
-
-    return 0;
+    selected_ids[num]=(uint32_t)-1; 
+    return selected_ids;
 }
