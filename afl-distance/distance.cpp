@@ -1,6 +1,5 @@
 
 #include "distance.h"
-using namespace std;
 uint32_t min(uint32_t a, uint32_t b){
 	return a <= b ? a : b;
 }
@@ -37,6 +36,7 @@ void Record::AddSons(u32 parent_id, u32 son_id){
 
 uint32_t Record::GetEditDis(u32 id1, u32 id2){
     
+    std::cout << id1 << " and " << id2 << std::endl;
     if (id1==id2)
         return 0;
    
@@ -196,21 +196,68 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
 
     u8 buffer [50];
+    u8 threadnum=2; // 1 或者2
+    std::queue< std::future<uint32_t> > workers;
     for( i=0; i < queued_paths; i++){
-        for(j=i; j < queued_paths; j++){
+        for(j=i; j < queued_paths-threadnum+1; j=j+threadnum){
+            if (threadnum-1){
+                std::future<uint32_t> getdistance0 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+0 );
+                std::future<uint32_t> getdistance1 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+1 );
+                //std::future<uint32_t> getdistance2 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+2 );
+                // std::future<uint32_t> getdistance3 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+3 );
+                //std::future<uint32_t> getdistance4 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+4 );
+               
+                uint32_t distance0 = getdistance0.get();
+                uint32_t distance1 = getdistance1.get();
+                //uint32_t distance2 = getdistance2.get();
+                //uint32_t distance3 = getdistance3.get();
+                //uint32_t distance4 = getdistance4.get();
+                data[ i*queued_paths     + (j+0)] = distance0;
+                data[ (j+0)*queued_paths +  i ] = distance0;
+                
+                data[ i*queued_paths     + (j+1)] = distance1;
+                data[ (j+1)*queued_paths +  i ] = distance1;
+                
+                //data[ i*queued_paths     + (j+2)] = distance2;
+                //data[ (j+2)*queued_paths +  i ] = distance2;
+                
+                //data[ i*queued_paths     + (j+3)] = distance3;
+                //data[ (j+3)*queued_paths +  i ] = distance3;
+                
+                //data[ i*queued_paths     + (j+4)] = distance4;
+                //data[ (j+4)*queued_paths +  i ] = distance4;
 
-            std::future<uint32_t>getdistance = std::async(std::launch::async,&Record::GetEditDis, this , i, j);
-            uint32_t dtemp = getdistance.get();
-
-            distance = GetEditDis(i,j);
-
-            if (distance != dtemp)
-                exit(0);
-            data[i*queued_paths + j]=distance;
-            data[j*queued_paths + i]=distance;
+            }
+            else{
+                distance = GetEditDis(i,j);
+                data[ i*queued_paths + j] = distance;
+                data[ j*queued_paths + i] = distance;
+            }
+            
             if (stop_soon)
-                exit(0);
+               exit(0);
+
+            //for (uint8_t m =0; m < threadnum; m++){
+            //    //std::future<uint32_t> getdistance( std::async(std::launch::async,&Record::GetEditDis, this , i, j+m) );
+            //    std::future<uint32_t> getdistance = std::async(std::launch::async,&Record::GetEditDis, this , i, j+m );
+            //    workers.push(getdistance);
+            //}
+           
+            ////for (uint8_t m =0; m < threadnum; m++){
+            //    //std::future<uint32_t> getdistance = workers.pop(); 
+            //    //uint32_t dtemp = getdistance.get();
+            //    //distance =dtemp;
+            //    distance = GetEditDis(i,j);
+            //    //if (distance != dtemp)
+            //    //    exit(0);
+            //    data[ i*queued_paths     + (j+m)] = distance;
+            //    data[ (j+m)*queued_paths +  i ] = distance;
+            //    
+            //    if (stop_soon)
+            //        exit(0);
+            ////}
         }
+        // set   stage name
         sprintf (buffer, "calculate-%d",i);
         stage_name= buffer;
         show_stats();
@@ -250,7 +297,7 @@ void InitPython(){
     Py_Initialize();    // 初始化python 虚拟机
     if (!Py_IsInitialized()) {
         Log("Cannot initialize python interface, quitting\n");
-        cout << "Cannot initialize python interface, quitting" << "\n";
+        std::cout << "Cannot initialize python interface, quitting" << "\n";
         exit(1);
     }
     
@@ -258,21 +305,21 @@ void InitPython(){
     InitNumpy();
     
     // 将Python工作路径切换到待调用模块所在目录，一定要保证路径名的正确性
-    string path = "/home/xiaosatianyu/workspace/git/fuzz/afl-data-deal";
-    string add_cmd = string("sys.path.append(\"") + path + "\")";
+    std::string path = "/home/xiaosatianyu/workspace/git/fuzz/afl-data-deal";
+    std::string add_cmd = std::string("sys.path.append(\"") + path + "\")";
     const char* add_cmd_cstr = add_cmd.c_str();
     PyRun_SimpleString("import sys");
     PyRun_SimpleString(add_cmd_cstr);
     
     // 将Python工作路径切换到待调用模块所在目录，一定要保证路径名的正确性
-    string path2 = "/home/xiaosatianyu/learning";
-    string add_cmd2 = string("sys.path.append(\"") + path2 + "\")";
+    std::string path2 = "/home/xiaosatianyu/learning";
+    std::string add_cmd2 = std::string("sys.path.append(\"") + path2 + "\")";
     const char* add_cmd_cstr2 = add_cmd2.c_str();
     PyRun_SimpleString(add_cmd_cstr2);
 
     // 添加虚拟python路径
-    string vpython = "/home/xiaosatianyu/.virtualenvs/xiaosa/local/lib/python2.7/site-packages";
-    string vpython_sys = string("sys.path.append(\"") + vpython + "\")";
+    std::string vpython = "/home/xiaosatianyu/.virtualenvs/xiaosa/local/lib/python2.7/site-packages";
+    std::string vpython_sys = std::string("sys.path.append(\"") + vpython + "\")";
     const char* vpython_cstr = vpython_sys.c_str();
     PyRun_SimpleString(vpython_cstr);
     
@@ -282,10 +329,10 @@ void InitPython(){
     if (!pModule) // 加载模块失败
     {
         Log("[ERROR] Python get module failed.\n");
-        cout << "[ERROR] Python get module failed." << endl;
+        std::cout << "[ERROR] Python get module failed." << std::endl;
         exit(1);
     }
-    cout << "[INFO] Python get module succeed." << endl;
+    std::cout << "[INFO] Python get module succeed." << std::endl;
     Log("[INFO] Python get module succeed.\n");
 
     // 加载函数
@@ -293,10 +340,10 @@ void InitPython(){
     if (!pv || !PyCallable_Check(pv))  // 验证是否加载成功
     {
         Log("[ERROR] Can't find funftion (test_add)\n");
-        cout << "[ERROR] Can't find funftion (test_add)" << endl;
+        std::cout << "[ERROR] Can't find funftion (test_add)" << std::endl;
         exit(1);
     }
-    cout << "[INFO] Get function (test_add) succeed." << endl;
+    std::cout << "[INFO] Get function (test_add) succeed." << std::endl;
     Log( "[INFO] Get function (test_add) succeed.\n");
    
     // init ok
@@ -323,7 +370,7 @@ uint32_t * CallPython(uint32_t* data, u32 inputnum){
     if (pRet){
         result = (PyArrayObject *)(pRet);
         num = result->dimensions[0];
-        selected_ids = malloc( (num+1)*sizeof(uint32_t)); // free in the later
+        selected_ids =(uint32_t*) malloc( (num+1)*sizeof(uint32_t)); // free in the later
         for( uint32_t m = 0; m < num; m++){
             //访问数据
             //m 和 n 分别是数组元素的坐标，乘上相应维度的步长，
@@ -332,11 +379,11 @@ uint32_t * CallPython(uint32_t* data, u32 inputnum){
             if (x> queued_paths)
                 sleep(100000);
             Log("return a selected input of %d\n", x);
-            //cout.width(7);
-            //cout<<x<<" ";
+            //std::cout.width(7);
+            //std::cout<<x<<" ";
         }
     }
-    cout << "end\n";
+    std::cout << "end\n";
     //Py_Finalize();      // 释放资源
     selected_ids[num]=(uint32_t)(-1); 
     return selected_ids;

@@ -19,6 +19,7 @@ extern "C" {
 #include <stdarg.h>
 #include <set>
 #include <map>
+#include <queue>
 #include <sys/stat.h> 
 
 #include <sys/types.h>
@@ -28,6 +29,10 @@ extern "C" {
 
 #include  <python2.7/Python.h>
 #include <numpy/arrayobject.h>
+
+#include <functional>     // std::ref
+#include <thread>         // std::thread
+#include <future>         // std::promise, std::future
 
 // the matrix_each for each distance betwwen two input
 struct Matrix{
