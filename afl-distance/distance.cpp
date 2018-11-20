@@ -34,23 +34,12 @@ void Record::AddSons(u32 parent_id, u32 son_id){
     }
 }	
 
+
 uint32_t Record::GetEditDis(u32 id1, u32 id2){
     
     if (id1==id2)
         return 0;
-
-    struct queue_entry* q1, *q2;
-    u32 i,j;
-    
-    q1 = queue;
-    i=id1;
-    while(i--)
-        q1=q1->next;
-    q2=queue;        
-    j=id2;
-    while(j--)
-        q2=q2->next;
-
+   
     u32 d1,d2;
     d1=d2=0;
     // read from old
@@ -63,11 +52,24 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
             d2=m_disrecord_[id2][id1]; 		
     
     if (d1!=d2){
-        Log("there is some thing wrong for %s and %s", q1->fname, q2->fname);
+        Log("there is some thing wrong for %d and %d", id1 ,id2 );
         exit(1);
     }    
     if (d1>0 && d1==d2)
         return d1;
+   
+    struct queue_entry* q1, *q2;
+    u32 i,j;
+
+    q1 = queue;
+    i=id1;
+    while(i--)
+        q1=q1->next;
+
+    q2=queue;        
+    j=id2;
+    while(j--)
+        q2=q2->next;
 
     Matrix matrix;
 
@@ -86,6 +88,8 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
     }
 
     uint32_t distance = CalDis ( input1, input2, matrix.row-1, matrix.col-1, matrix);
+	
+	
 
     //free the heap
     for (i = 0; i < matrix.row; i++){
@@ -194,7 +198,14 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     u8 buffer [50];
     for( i=0; i < queued_paths; i++){
         for(j=i; j < queued_paths; j++){
+
+            std::future<uint32_t>getdistance = std::async(std::launch::async,&Record::GetEditDis, this , i, j);
+            uint32_t dtemp = getdistance.get();
+
             distance = GetEditDis(i,j);
+
+            if (distance != dtemp)
+                exit(0);
             data[i*queued_paths + j]=distance;
             data[j*queued_paths + i]=distance;
             if (stop_soon)
@@ -215,7 +226,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     //    }
     //}
     //exit(1);
-    uint32_t result; 
+    uint32_t * result; 
     result = CallPython(data, queued_paths);
     free(data);
     //3. print the distance to the python interface
@@ -223,6 +234,10 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     return result;
 }
 
+
+uint32_t Add(uint32_t x){
+    return (x+1);
+}
 
 uint8_t InitNumpy() {
     import_array(); // 需要加入 -fpermissive 编译参数
