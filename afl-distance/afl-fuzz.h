@@ -41,6 +41,8 @@ struct queue_entry {
 };
 
 
+
 void show_stats(void);
+
 
 #endif // end_AFL_FUZZ_H

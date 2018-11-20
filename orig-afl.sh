@@ -1,2 +1,2 @@
-rm -rf /dev/shm/afl-distance
-gdb --args ./afl-distance/afl-fuzz -d  -i ./seed  -o /dev/shm/afl-distance ./nm -C @@  
+rm -rf /dev/shm/afl-orig
+gdb --args ./afl-orig/afl-fuzz  -i ./seed  -o /dev/shm/afl-orig ./nm -C @@  

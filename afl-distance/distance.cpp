@@ -97,7 +97,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
     free(input1);
     free(input2);
 
-    Log("the distance between %d and %d is %d\n", q1->id,q2->id,distance);
+    //Log("the distance between %d and %d is %d\n", q1->id,q2->id,distance);
 
     // use insert will not overwirte
     // use [] can overwrite
@@ -190,13 +190,19 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
 
     uint32_t i, j, distance;
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
+
+    u8 buffer [50];
     for( i=0; i < queued_paths; i++){
         for(j=i; j < queued_paths; j++){
             distance = GetEditDis(i,j);
             data[i*queued_paths + j]=distance;
             data[j*queued_paths + i]=distance;
-            show_stats();
+            if (stop_soon)
+                exit(0);
         }
+        sprintf (buffer, "calculate-%d",i);
+        stage_name= buffer;
+        show_stats();
     }
 
     //uint32_t d1,d2;
@@ -298,8 +304,9 @@ uint32_t * CallPython(uint32_t* data, u32 inputnum){
     // 返回的是一个一维的 聚类结果
     uint32_t * selected_ids;
     uint32_t num;
+    PyArrayObject *result;
     if (pRet){
-        PyArrayObject *result = (PyArrayObject *)(pRet);
+        result = (PyArrayObject *)(pRet);
         num = result->dimensions[0];
         selected_ids = malloc( (num+1)*sizeof(uint32_t)); // free in the later
         for( uint32_t m = 0; m < num; m++){
@@ -307,6 +314,9 @@ uint32_t * CallPython(uint32_t* data, u32 inputnum){
             //m 和 n 分别是数组元素的坐标，乘上相应维度的步长，
             uint32_t x = *(uint32_t *)(result->data + m * result->strides[0]);
             selected_ids[m]=x;
+            if (x> queued_paths)
+                sleep(100000);
+            Log("return a selected input of %d\n", x);
             //cout.width(7);
             //cout<<x<<" ";
         }

@@ -12,6 +12,7 @@ u8 InitDistance( ){
 }
 
 void AddSons(u32 parent_id, u32 son_id){
+    return;
     aflRecord->AddSons(parent_id, son_id);
 }
 

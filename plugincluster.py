@@ -5,9 +5,9 @@ import scipy.cluster.hierarchy as sch
 #import logging
 import numpy as np
 
-#import matplotlib
-#matplotlib.use('Agg')
-#import matplotlib.pylab as plt
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pylab as plt
 
 #l=logging.getLogger("NEUZZ")
 #l.setLevel("INFO")
@@ -17,18 +17,21 @@ import numpy as np
 #linkage_method={"single","average","complete","weighted","centroid","median","ward"}
 linkage_method={"complete"}
 
-            
+num=0;            
 def getcluster(dismatrix):
-    print "start" 
-    print dismatrix
+    #print "start" 
+    #print dismatrix
     #l.warn("using %s method", item)
+    dismatrix = scipy.spatial.distance.squareform(dismatrix)
     Z = sch.linkage(dismatrix, method="average")
-    #P=sch.dendrogram(Z,  leaf_rotation=90.,show_leaf_counts=True, leaf_font_size=8., show_contracted=True, labels=None) #p=12, truncate_mode="lastp",
-    #plt.savefig("test.png")
+    P=sch.dendrogram(Z, p=12, truncate_mode="lastp",leaf_rotation=90.,show_leaf_counts=True, leaf_font_size=8., show_contracted=True, labels=None) 
+    plt.savefig("test"+str(num)+".png")
+    global num
+    num=num+1
     
     cluster = sch.fcluster(Z,t=0.8, criterion="inconsistent")
     #l.info("\ncluster1 to %d, t is 0.8", cluster.max())
-    indices = get_cluster_indices(cluster)
+    #indices = get_cluster_indices(cluster)
     #for k, ind in enumerate(indices):
     #    print( "cluster %d is %s"%( k + 1,  ind))
 
@@ -36,8 +39,8 @@ def getcluster(dismatrix):
     #r2= sch.inconsistent(Z)
         
     result= get_selected_indices(cluster)
-    print "result"
-    print result
+    #print "result"
+    #print result
     return result 
 
 def get_cluster_indices(cluster):

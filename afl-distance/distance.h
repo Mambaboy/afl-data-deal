@@ -63,7 +63,7 @@ class Record{
 };
 
 // 函数
-void Log (char const *fmt, ...);
+static void Log (char const *fmt, ...);
 uint8_t InitNumpy();
 uint32_t *CallPython(uint32_t * data, u32 inputnum);
 void InitPython();
@@ -79,7 +79,8 @@ extern void show_stats(void);
 extern u8* out_dir;
 extern struct queue_entry * queue;
 extern u32 queued_paths;
-
+extern u8* stage_name; 
+extern u8 stop_soon;
 
 #endif // end DISTANCE_H
 

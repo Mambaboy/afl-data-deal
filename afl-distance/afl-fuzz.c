@@ -148,8 +148,9 @@ static u8  var_bytes[MAP_SIZE];       /* Bytes that appear to be variable */
 
 static s32 shm_id;                    /* ID of the SHM region             */
 
-static volatile u8 stop_soon,         /* Ctrl-C pressed?                  */
-                   clear_screen = 1,  /* Window resized?                  */
+volatile u8 stop_soon; /* Ctrl-C pressed?                  */
+
+static volatile u8 clear_screen = 1,  /* Window resized?                  */
                    child_timed_out;   /* Traced process timed out?        */
 u32 queued_paths;  /* Total number of queued testcases */ 
 
@@ -168,6 +169,7 @@ EXP_ST u32 queued_variable,           /* Testcases with variable behavior */
            var_byte_count,            /* Bitmap bytes with var behavior   */
            current_entry,             /* Current queue entry ID           */
            havoc_div = 1;             /* Cycle count divisor for havoc    */
+static u32 pending_selected;          // the selected but unfuzzed numbers
 
 EXP_ST u64 total_crashes,             /* Total number of crashes          */
            unique_crashes,            /* Crashes with unique signatures   */
@@ -190,8 +192,8 @@ EXP_ST u64 total_crashes,             /* Total number of crashes          */
 
 static u32 subseq_tmouts;             /* Number of timeouts in a row      */
 
-static u8 *stage_name = "init",       /* Name of the current fuzz stage   */
-          *stage_short,               /* Short stage name                 */
+u8 *stage_name = "init";       /* Name of the current fuzz stage   */
+static u8 *stage_short,               /* Short stage name                 */
           *syncing_party;             /* Currently syncing with...        */
 
 static s32 stage_cur, stage_max;      /* Stage progression                */
@@ -226,7 +228,7 @@ static s32 cpu_aff = -1;       	      /* Selected CPU core                */
 #endif /* HAVE_AFFINITY */
 
 static FILE* plot_file;               /* Gnuplot output file              */
-
+static FILE * log_file;
 
 struct queue_entry * queue;   /* Fuzzing queue (linked list)      */
 
@@ -297,6 +299,9 @@ enum {
   /* 04 */ FAULT_NOINST,
   /* 05 */ FAULT_NOBITS
 };
+
+
+
 
 
 /* Get unix time in milliseconds */
@@ -1272,32 +1277,38 @@ static void update_bitmap_score(struct queue_entry* q) {
 
 static void cull_queue(void) {
   
-  stage_name = "cull";
-  struct queue_entry* q;
-  static u8 temp_v[MAP_SIZE >> 3];
-  u32 i,j;
-   
-  if (queued_paths < 100)
-      return;
-  uint32_t* selected_ids =  GetSelectedSons(0);
-  uint32_t id;
-  while (q) {
-    q->favored = 0;
-    q = q->next;
-  }
-  i=0;
-  while( selected_ids[i]!= (uint32_t)(-1) ){
-        q=queue;
-        j=selected_ids[i];
-        while (j--) {
+    struct queue_entry* q;
+    static u8 temp_v[MAP_SIZE >> 3];
+    u32 i,j;
+  
+    if (1){ 
+          if (queued_paths < 100)
+              return;
+          uint32_t* selected_ids =  GetSelectedSons(0);
+          uint32_t id;
+          while (q) {
+            q->favored = 0;
             q = q->next;
-        }      
-        q->favored=1;
-        q->was_fuzzed=0;
-        i++;
-      }
-  free(selected_ids);
-  return;
+          }
+          i=0;
+          pending_favored=0;
+          while( selected_ids[i]!= (uint32_t)(-1) ){
+                q=queue;
+                j=selected_ids[i];
+                if (j> queued_paths){
+                    continue;
+                }
+                while (j--) {
+                    q = q->next;
+                }      
+                q->favored=1;
+                q->was_fuzzed=0;
+                i++;
+                pending_favored++;
+              }
+          free(selected_ids);
+          return;
+     }
 
   if (dumb_mode || !score_changed) return;
 
@@ -2072,6 +2083,7 @@ EXP_ST void init_forkserver(char** argv) {
     close(dev_null_fd);
     close(dev_urandom_fd);
     close(fileno(plot_file));
+    close(fileno(log_file));
 
     /* This should improve performance a bit, since it stops the linker from
        doing extra work post-fork(). */
@@ -2344,6 +2356,7 @@ static u8 run_target(char** argv, u32 timeout) {
       close(out_dir_fd);
       close(dev_urandom_fd);
       close(fileno(plot_file));
+      close(fileno(log_file));
 
       /* Set sane defaults for ASAN if nothing else specified. */
 
@@ -3843,6 +3856,10 @@ static void maybe_delete_out_dir(void) {
   }
 
   fn = alloc_printf("%s/plot_data", out_dir);
+  if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
+  ck_free(fn);
+
+  fn = alloc_printf("%s/afl.log", out_dir);
   if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
   ck_free(fn);
 
@@ -7203,6 +7220,15 @@ EXP_ST void setup_dirs_fds(void) {
                      "pending_total, pending_favs, map_size, unique_crashes, "
                      "unique_hangs, max_depth, execs_per_sec\n");
                      /* ignore errors */
+ 
+	// log
+  tmp = alloc_printf("%s/afl.log", out_dir);
+  fd = open(tmp, O_WRONLY | O_CREAT | O_EXCL, 0600);
+  if (fd < 0) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
+
+  log_file = fdopen(fd, "w");
+  if (!log_file) PFATAL("fdopen() failed");
 
 }
 
@@ -8014,6 +8040,7 @@ int main(int argc, char** argv) {
 
     if (!queue_cur) {
 
+      
       queue_cycle++;
       current_entry     = 0;
       cur_skipped_paths = 0;
@@ -8047,8 +8074,9 @@ int main(int argc, char** argv) {
         sync_fuzzers(use_argv);
 
     }
-
-    cull_queue();
+    
+    if (pending_favored==0)
+        cull_queue();
     skipped_fuzz = fuzz_one(use_argv);
     
 
@@ -8087,7 +8115,7 @@ stop_fuzzing:
            "    (For info on resuming, see %s/README.)\n", doc_path);
 
   }
-
+  fclose(log_file);
   fclose(plot_file);
   destroy_queue();
   destroy_extras();
