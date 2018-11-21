@@ -4616,7 +4616,10 @@ abort_trimming:
 
 EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
-  u8 fault;
+   if (len < 10)
+       return 0; // ignore the testcase less than 10 bytes
+
+   u8 fault;
 
   if (post_handler) {
 

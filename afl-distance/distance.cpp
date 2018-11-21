@@ -68,7 +68,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
         }    
         if (d1>0 && d1==d2){
             timeondistance += (get_cur_time_us() - starttime);
-            Log("OLD:cal on %d and %d, cost %llu time\n",id1, id2, timeondistance );
+            Log("[OLD]:cal on %d and %d, cost %llu time, distance: %d \n",id1, id2, timeondistance, d1 );
             return d1;
         }
     }
@@ -120,7 +120,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     // use [] can overwrite
     if ( m_disrecord_[id1][id2] != 0) {
         if ( (m_disrecord_[id1][id2] != distance) ||(m_disrecord_[id2][id1] != distance) )
-            Log("the distance betwwen %d and %d is from %d to %d\n", id1, id2 ,m_disrecord_[id2][id1], distance );
+            Log("[Cover] the distance betwwen %d and %d is from %d to %d \n", id1, id2 ,m_disrecord_[id2][id1], distance );
     }   
     m_disrecord_[id1][id2] = distance;
     m_disrecord_[id2][id1] = distance; // 会覆盖 
@@ -145,13 +145,11 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     //}
     
     timeondistance += (get_cur_time_us() - starttime);
-    Log("New:cal on %d(%d) and %d(%d), cost %llu time\n",id1, q1->len, id2, q2->len, timeondistance );
+    Log("[New]:cal on %d(d:%d) and %d(d:%d), cost %llu time, distance: %d\n",id1, q1->len, id2, q2->len, timeondistance , distance);
     return distance;
 }
 
 uint32_t Record::CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each){
-    int d[len1+1][len2+1];
-    d[0][0]=1;
 
     if (matrix_each.label[i][j]==1)
         return matrix_each.content[i][j];
