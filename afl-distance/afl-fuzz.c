@@ -3183,8 +3183,11 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     if (fd < 0) PFATAL("Unable to create '%s'", fn);
     ck_write(fd, mem, len, fn);
     close(fd);
-
+    
     keeping = 1;
+    
+    // queue保存之后立刻trim一下
+    trim_case(argv, queue_top, mem);
 
   }
 
@@ -3313,7 +3316,8 @@ keep_as_crash:
   close(fd);
 
   ck_free(fn);
-
+    
+  
   return keeping;
 
 }
@@ -5072,7 +5076,7 @@ static u8 fuzz_one(char** argv) {
    * TRIMMING *
    ************/
 
-  if (!dumb_mode && !queue_cur->trim_done) {
+  if (!dumb_mode && !queue_cur->trim_done && 0) {
 
     u8 res = trim_case(argv, queue_cur, in_buf);
 
