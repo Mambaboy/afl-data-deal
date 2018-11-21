@@ -52,6 +52,8 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
             d2=m_disrecord_[id2][id1]; 		
     
     if (d1!=d2){
+        Log("d1 is %d\n", d1);
+        Log("d2 is %d\n", d2);
         Log("there is some thing wrong for %d and %d", id1 ,id2 );
         exit(1);
     }    
@@ -196,36 +198,36 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
 
     u8 buffer [50];
-    u8 threadnum=2; // 1 或者2
+    u8 threadnum=5; // 1 或者2
     std::queue< std::future<uint32_t> > workers;
     for( i=0; i < queued_paths; i++){
         for(j=i; j < queued_paths-threadnum+1; j=j+threadnum){
             if (threadnum-1){
                 std::future<uint32_t> getdistance0 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+0 );
                 std::future<uint32_t> getdistance1 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+1 );
-                //std::future<uint32_t> getdistance2 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+2 );
-                // std::future<uint32_t> getdistance3 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+3 );
-                //std::future<uint32_t> getdistance4 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+4 );
+                std::future<uint32_t> getdistance2 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+2 );
+                std::future<uint32_t> getdistance3 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+3 );
+                std::future<uint32_t> getdistance4 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+4 );
                
                 uint32_t distance0 = getdistance0.get();
                 uint32_t distance1 = getdistance1.get();
-                //uint32_t distance2 = getdistance2.get();
-                //uint32_t distance3 = getdistance3.get();
-                //uint32_t distance4 = getdistance4.get();
+                uint32_t distance2 = getdistance2.get();
+                uint32_t distance3 = getdistance3.get();
+                uint32_t distance4 = getdistance4.get();
                 data[ i*queued_paths     + (j+0)] = distance0;
                 data[ (j+0)*queued_paths +  i ] = distance0;
                 
                 data[ i*queued_paths     + (j+1)] = distance1;
                 data[ (j+1)*queued_paths +  i ] = distance1;
                 
-                //data[ i*queued_paths     + (j+2)] = distance2;
-                //data[ (j+2)*queued_paths +  i ] = distance2;
+                data[ i*queued_paths     + (j+2)] = distance2;
+                data[ (j+2)*queued_paths +  i ] = distance2;
                 
-                //data[ i*queued_paths     + (j+3)] = distance3;
-                //data[ (j+3)*queued_paths +  i ] = distance3;
+                data[ i*queued_paths     + (j+3)] = distance3;
+                data[ (j+3)*queued_paths +  i ] = distance3;
                 
-                //data[ i*queued_paths     + (j+4)] = distance4;
-                //data[ (j+4)*queued_paths +  i ] = distance4;
+                data[ i*queued_paths     + (j+4)] = distance4;
+                data[ (j+4)*queued_paths +  i ] = distance4;
 
             }
             else{
