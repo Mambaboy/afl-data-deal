@@ -39,6 +39,8 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     //std::cout << id1 << " and " << id2 << std::endl;
     if (id1==id2)
         return 0;
+    
+    u64 starttime= get_cur_time_us();
 
     if (useold){ 
         u32 d1,d2;
@@ -58,8 +60,10 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
             Log("there is some thing wrong for %d and %d", id1 ,id2 );
             exit(1);
         }    
-        if (d1>0 && d1==d2)
+        if (d1>0 && d1==d2){
+            timeondistance += (get_cur_time_us() - starttime);
             return d1;
+        }
     }
 
     struct queue_entry* q1, *q2;
@@ -132,7 +136,8 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     //    //m_disrecord_[id2].insert(std::make_pair(id1,distance)); 
     //    m_disrecord_[id2][id1]=distance; // 会覆盖 
     //}
-
+    
+    timeondistance += (get_cur_time_us() - starttime);
     return distance;
 }
 
@@ -215,6 +220,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     uint32_t i, j, distance;
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
 
+    timeondistance=0;
     u8 buffer [50];
     u8 threadnum=1; // 1 或者2
     std::queue< std::future<uint32_t> > workers;
@@ -297,7 +303,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     result = CallPython(data, queued_paths);
     free(data);
     //3. print the distance to the python interface
-
+    Log("in this process, cost %llu time on distancd calcualtion", timeondistance );
     return result;
 }
 

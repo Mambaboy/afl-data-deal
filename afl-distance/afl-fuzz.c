@@ -171,6 +171,7 @@ EXP_ST u32 queued_variable,           /* Testcases with variable behavior */
            havoc_div = 1;             /* Cycle count divisor for havoc    */
 static u32 pending_selected;          // the selected but unfuzzed numbers
 
+
 EXP_ST u64 total_crashes,             /* Total number of crashes          */
            unique_crashes,            /* Crashes with unique signatures   */
            total_tmouts,              /* Total number of timeouts         */
@@ -305,8 +306,7 @@ enum {
 
 
 /* Get unix time in milliseconds */
-
-static u64 get_cur_time(void) {
+u64 get_cur_time(void) {
 
   struct timeval tv;
   struct timezone tz;
@@ -320,7 +320,7 @@ static u64 get_cur_time(void) {
 
 /* Get unix time in microseconds */
 
-static u64 get_cur_time_us(void) {
+u64 get_cur_time_us(void) {
 
   struct timeval tv;
   struct timezone tz;

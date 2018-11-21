@@ -46,4 +46,8 @@ static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf);
 void show_stats(void);
 
 
+
+u64 get_cur_time(void);   // 微秒
+u64 get_cur_time_us(void);// 毫秒
+
 #endif // end_AFL_FUZZ_H
