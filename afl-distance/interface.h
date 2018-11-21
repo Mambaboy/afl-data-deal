@@ -18,6 +18,8 @@ u32* GetSelectedSons(u32 parent_id);
 // Return: 1 if intilized successfully, otherwise 0.
 u8 InitDistance();
 
+void UpdateOneDistance(u32 id);
+
 #ifdef __cplusplus
 }
 #endif

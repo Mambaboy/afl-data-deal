@@ -16,6 +16,9 @@ void AddSons(u32 parent_id, u32 son_id){
     aflRecord->AddSons(parent_id, son_id);
 }
 
+void UpdateOneDistance(u32 id){
+    aflRecord->UpdateOneDistance(id);
+}
 
 u32 * GetSelectedSons(u32 parent_id){
     // 1. get all its sons

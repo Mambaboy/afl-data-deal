@@ -61,9 +61,11 @@ class Record{
 	    ~Record(){};
         uint32_t * GetSelectedSons(u32 parent_id);	
         void AddSons(u32 parent_id, u32 son_id);
-        uint32_t GetEditDis(uint32_t id1, uint32_t id2);
+        // useold 0, 1
+        uint32_t GetEditDis(uint32_t id1, uint32_t id2, uint8_t useold);
         uint32_t CalDis(u8* input1, u32 len1,  u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each);
         u8* ReadInput(u8* fname, u32 len);
+        void UpdateOneDistance(uint32_t id);
 
 };
 

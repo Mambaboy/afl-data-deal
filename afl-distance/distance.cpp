@@ -34,32 +34,34 @@ void Record::AddSons(u32 parent_id, u32 son_id){
 }	
 
 
-uint32_t Record::GetEditDis(u32 id1, u32 id2){
+uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     
-    std::cout << id1 << " and " << id2 << std::endl;
+    //std::cout << id1 << " and " << id2 << std::endl;
     if (id1==id2)
         return 0;
-   
-    u32 d1,d2;
-    d1=d2=0;
-    // read from old
-    if (m_disrecord_.find(id1)!=m_disrecord_.end())
-        if (m_disrecord_[id1].find(id2)!=m_disrecord_[id1].end())
-            d1=m_disrecord_[id1][id2]; 		
-    
-    if (m_disrecord_.find(id2)!=m_disrecord_.end())
-        if (m_disrecord_[id2].find(id1)!=m_disrecord_[id2].end())
-            d2=m_disrecord_[id2][id1]; 		
-    
-    if (d1!=d2){
-        Log("d1 is %d\n", d1);
-        Log("d2 is %d\n", d2);
-        Log("there is some thing wrong for %d and %d", id1 ,id2 );
-        exit(1);
-    }    
-    if (d1>0 && d1==d2)
-        return d1;
-   
+
+    if (useold){ 
+        u32 d1,d2;
+        d1=d2=0;
+        // read from old
+        if (m_disrecord_.find(id1)!=m_disrecord_.end())
+            if (m_disrecord_[id1].find(id2)!=m_disrecord_[id1].end())
+                d1=m_disrecord_[id1][id2]; 		
+        
+        if (m_disrecord_.find(id2)!=m_disrecord_.end())
+            if (m_disrecord_[id2].find(id1)!=m_disrecord_[id2].end())
+                d2=m_disrecord_[id2][id1]; 		
+        
+        if (d1!=d2){
+            Log("d1 is %d\n", d1);
+            Log("d2 is %d\n", d2);
+            Log("there is some thing wrong for %d and %d", id1 ,id2 );
+            exit(1);
+        }    
+        if (d1>0 && d1==d2)
+            return d1;
+    }
+
     struct queue_entry* q1, *q2;
     u32 i,j;
 
@@ -89,7 +91,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
         matrix.label[i] = (uint32_t *) calloc(  matrix.col, sizeof(uint32_t));
     }
 
-    uint32_t distance = CalDis ( input1,q1->len, input2,q2->len, matrix.row-1, matrix.col-1, matrix);
+    uint32_t distance = CalDis ( input1, q1->len, input2, q2->len, matrix.row-1, matrix.col-1, matrix);
 
     //free the heap
     for (i = 0; i < matrix.row; i++){
@@ -105,29 +107,31 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
 
     // use insert will not overwirte
     // use [] can overwrite
-    // update the q1
-    if (m_disrecord_.find(id1)==m_disrecord_.end()){
-        std::map<u32 ,u32> record;
-        record.insert( std::make_pair(id2, distance) );
-        m_disrecord_[id1] = record; 		
-    }
-    else{
-        // update the  distance from q2 to q1 
-        // here will not overwrite
-        m_disrecord_[id1].insert(std::make_pair(id2,distance)); 
-    }
+    if ( m_disrecord_[id1][id2] != 0) {
+        if ( (m_disrecord_[id1][id2] != distance) ||(m_disrecord_[id2][id1] != distance) )
+            Log("the distance betwwen %d and %d is from %d to %d\n", id1, id2 ,m_disrecord_[id2][id1], distance );
+    }   
+    m_disrecord_[id1][id2] = distance;
+    m_disrecord_[id2][id1] = distance; // 会覆盖 
+    //if (m_disrecord_.find(id1)==m_disrecord_.end()){
+    //    std::map<u32 ,u32> record;
+    //    record.insert( std::make_pair(id2, distance) ); 
+    //    m_disrecord_[id1] = record; 		
+    //}
+    //else{
+    //    m_disrecord_[id1][id2]=distance; // 会覆盖 会新建 
+    //}
 
-    // update the q2
-    if (m_disrecord_.find(id2)==m_disrecord_.end()){
-        std::map<u32, u32> record;
-        record.insert(std::make_pair(id1,distance));
-        m_disrecord_[id2] = record; 		
-    }
-    else{
-        // update the distance from q1 to q2
-        // here will not overwrite
-        m_disrecord_[id2].insert(std::make_pair(id1,distance)); 
-    }
+    //// update the q2
+    //if (m_disrecord_.find(id2)==m_disrecord_.end()){
+    //    std::map<u32, u32> record;
+    //    record.insert(std::make_pair(id1,distance));
+    //    m_disrecord_[id2] = record; 		
+    //}
+    //else{
+    //    //m_disrecord_[id2].insert(std::make_pair(id1,distance)); 
+    //    m_disrecord_[id2][id1]=distance; // 会覆盖 
+    //}
 
     return distance;
 }
@@ -182,6 +186,14 @@ u8* Record::ReadInput(u8* fname, u32 len){
 
     return mem;
 }
+void Record::UpdateOneDistance(u32 id){
+    uint32_t i;
+    uint32_t distance;
+    for( i=0; i < queued_paths; i++){
+        distance = GetEditDis(i, id, 0);
+    }    
+
+}
 
 uint32_t* Record::GetSelectedSons(u32 parent_id){
     //1. get the sons id
@@ -204,16 +216,16 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
 
     u8 buffer [50];
-    u8 threadnum=5; // 1 或者2
+    u8 threadnum=1; // 1 或者2
     std::queue< std::future<uint32_t> > workers;
     for( i=0; i < queued_paths; i++){
         for(j=i; j < queued_paths-threadnum+1; j=j+threadnum){
             if (threadnum-1){
-                std::future<uint32_t> getdistance0 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+0 );
-                std::future<uint32_t> getdistance1 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+1 );
-                std::future<uint32_t> getdistance2 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+2 );
-                std::future<uint32_t> getdistance3 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+3 );
-                std::future<uint32_t> getdistance4 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+4 );
+                std::future<uint32_t> getdistance0 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+0 ,1 );
+                std::future<uint32_t> getdistance1 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+1 ,1 );
+                std::future<uint32_t> getdistance2 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+2 ,1);
+                std::future<uint32_t> getdistance3 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+3 ,1);
+                std::future<uint32_t> getdistance4 = std::async(std::launch::async,&Record::GetEditDis, this , i, j+4 ,1);
                
                 uint32_t distance0 = getdistance0.get();
                 uint32_t distance1 = getdistance1.get();
@@ -237,7 +249,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
 
             }
             else{
-                distance = GetEditDis(i,j);
+                distance = GetEditDis(i,j,1);
                 data[ i*queued_paths + j] = distance;
                 data[ j*queued_paths + i] = distance;
             }
@@ -270,7 +282,7 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
         stage_name= buffer;
         show_stats();
     }
-
+    // for test distance
     //uint32_t d1,d2;
     //Log("\n");
     //for( i=0; i < queued_paths; i++){
@@ -363,7 +375,8 @@ void InitPython(){
 uint32_t * CallPython(uint32_t* data, u32 inputnum){
     InitPython(); 
     npy_intp Dims[2] = {inputnum, inputnum};
-    //生成包含这个多维数组的PyObject对象，使用PyArray_SimpleNewFromData函数，第一个参数2表示维度，第二个为维度数组Dims,第三个参数指出数组的类型，第四个参数为数组
+    //生成包含这个多维数组的PyObject对象，使用PyArray_SimpleNewFromData函数，
+    //第一个参数2表示维度，第二个为维度数组Dims,第三个参数指出数组的类型，第四个参数为数组
     PyObject *PyArray  = PyArray_SimpleNewFromData(2, Dims, NPY_UINT32 , data);
     PyObject *ArgArray = PyTuple_New(1);
     PyTuple_SetItem(ArgArray, 0, PyArray); //同样定义大小与Python函数参数个数一致的PyTuple对象

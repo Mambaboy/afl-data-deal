@@ -1305,7 +1305,7 @@ static void cull_queue(void) {
                 q->was_fuzzed=0;
                 i++;
                 pending_favored++;
-              }
+          }
           free(selected_ids);
           return;
      }
@@ -4485,7 +4485,7 @@ static u32 next_p2(u32 val) {
    file size, to keep the stage short and sweet. */
 
 static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
-    return 0;
+  
   static u8 tmp[64];
   static u8 clean_trace[MAP_SIZE];
 
@@ -4593,6 +4593,9 @@ static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
 
     memcpy(trace_bits, clean_trace, MAP_SIZE);
     update_bitmap_score(q);
+    // update the distance
+    fprintf( log_file, "rewrite the %s\n", q->fname); 
+    UpdateOneDistance(q->id);
 
   }
 
