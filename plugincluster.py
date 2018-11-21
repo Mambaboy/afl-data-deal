@@ -4,6 +4,8 @@ import scipy.cluster.hierarchy as sch
 #import coloredlogs
 #import logging
 import numpy as np
+import time
+import os
 
 # 在C中不能启动这个
 #import matplotlib
@@ -29,13 +31,18 @@ def getcluster(dismatrix):
     
     cluster = sch.fcluster(Z,t=0.8, criterion="inconsistent")
     #l.info("\ncluster1 to %d, t is 0.8", cluster.max())
-    #indices = get_cluster_indices(cluster)
-    #for k, ind in enumerate(indices):
-    #    print( "cluster %d is %s"%( k + 1,  ind))
+    indices = get_cluster_indices(cluster)
+    temp_path="/dev/shm/cluster"
+    if not os.path.exists( temp_path):
+        os.makedirs(temp_path)
+    filepath = os.path.join(temp_path, "log")
+    with open(filepath,'a') as f:
+        f.write("\nat time %d\n"%time.time())
+        for k, ind in enumerate(indices):
+            f.write( "cluster %d is %s\n"%( k + 1,  ind))
 
     #r= sch.cophenet(Z, dismatrix)
     #r2= sch.inconsistent(Z)
-        
     result= get_selected_indices(cluster)
     #print "result"
     #print result
@@ -56,6 +63,7 @@ def get_cluster_indices(cluster):
 
 def get_selected_indices(cluster):
     n = cluster.max()
+    print str(n) + " class"
     selected=list()
     for cluster_number in range(1, n + 1):
         curcluster= np.where(cluster == cluster_number)[0]
