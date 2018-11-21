@@ -78,7 +78,6 @@ void InitPython();
 //变量
 static uint8_t initpython=0;
 static PyObject* pv; // the target fuction
-static uint64_t timeondistance=0;            // save the time on the distance calculation
 
 
 // 外部的函数和变量

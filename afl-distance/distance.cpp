@@ -41,7 +41,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
         return 0;
     
     u64 starttime= get_cur_time_us();
-
+    u64 timeondistance=0;
     if (useold){ 
         u32 d1,d2;
         d1=d2=0;
@@ -62,6 +62,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
         }    
         if (d1>0 && d1==d2){
             timeondistance += (get_cur_time_us() - starttime);
+            Log("OLD:cal on %d and %d, cost %llu time\n",id1, id2, timeondistance );
             return d1;
         }
     }
@@ -138,6 +139,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     //}
     
     timeondistance += (get_cur_time_us() - starttime);
+    Log("New:cal on %d(%d) and %d(%d), cost %llu time\n",id1, q1->len, id2, q2->len, timeondistance );
     return distance;
 }
 
@@ -155,9 +157,9 @@ uint32_t Record::CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, 
     }else{
         if  ( (len1/len2 > 5 || len2/len1 >5) &&(len1 > 1000 || len2 > 1000) ){
             if (len1> len2)
-                distance =len1;
+                distance =len1-len2;
             else
-                distance= len2;
+                distance= len2- len1;
         }
         else{
             distance=
@@ -220,7 +222,6 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     uint32_t i, j, distance;
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
 
-    timeondistance=0;
     u8 buffer [50];
     u8 threadnum=1; // 1 或者2
     std::queue< std::future<uint32_t> > workers;
@@ -303,7 +304,6 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     result = CallPython(data, queued_paths);
     free(data);
     //3. print the distance to the python interface
-    Log("in this process, cost %llu time on distancd calcualtion", timeondistance );
     return result;
 }
 
@@ -406,13 +406,14 @@ uint32_t * CallPython(uint32_t* data, u32 inputnum){
             selected_ids[m]=x;
             if (x> queued_paths)
                 sleep(100000);
-            Log("return a selected input of %d\n", x);
+            //Log("return a selected input of %d\n", x);
             //std::cout.width(7);
             //std::cout<<x<<" ";
         }
     }
     std::cout << "end\n";
     //Py_Finalize();      // 释放资源
+    Log("slected %d inputs \n", num);
     selected_ids[num]=(uint32_t)(-1); 
     return selected_ids;
 }
