@@ -4597,9 +4597,11 @@ static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
 
     memcpy(trace_bits, clean_trace, MAP_SIZE);
     update_bitmap_score(q);
+    
     // update the distance
     fprintf( log_file, "rewrite the %s\n", q->fname); 
-    UpdateOneDistance(q->id);
+    //每次add queue之后立刻调用，就不用更新了
+    //UpdateOneDistance(q->id);
 
   }
 
