@@ -1,5 +1,11 @@
 
 #include "distance.h"
+
+//变量
+uint8_t initpython=0;
+PyObject* pv; // the target fuction
+
+
 uint32_t min(uint32_t a, uint32_t b){
 	return a <= b ? a : b;
 }
@@ -144,6 +150,8 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
 }
 
 uint32_t Record::CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each){
+    int d[len1+1][len2+1];
+    d[0][0]=1;
 
     if (matrix_each.label[i][j]==1)
         return matrix_each.content[i][j];
@@ -195,9 +203,8 @@ u8* Record::ReadInput(u8* fname, u32 len){
 }
 void Record::UpdateOneDistance(u32 id){
     uint32_t i;
-    uint32_t distance;
     for( i=0; i < queued_paths; i++){
-        distance = GetEditDis(i, id, 0);
+        GetEditDis(i, id, 0);
     }    
 
 }

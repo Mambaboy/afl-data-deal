@@ -169,8 +169,6 @@ EXP_ST u32 queued_variable,           /* Testcases with variable behavior */
            var_byte_count,            /* Bitmap bytes with var behavior   */
            current_entry,             /* Current queue entry ID           */
            havoc_div = 1;             /* Cycle count divisor for havoc    */
-static u32 pending_selected;          // the selected but unfuzzed numbers
-
 
 EXP_ST u64 total_crashes,             /* Total number of crashes          */
            unique_crashes,            /* Crashes with unique signatures   */
@@ -1285,7 +1283,6 @@ static void cull_queue(void) {
           if (queued_paths < 100)
               return;
           uint32_t* selected_ids =  GetSelectedSons(0);
-          uint32_t id;
           while (q) {
             q->favored = 0;
             q = q->next;
@@ -4488,7 +4485,7 @@ static u32 next_p2(u32 val) {
    trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
    file size, to keep the stage short and sweet. */
 
-static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
+u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
   
   static u8 tmp[64];
   static u8 clean_trace[MAP_SIZE];

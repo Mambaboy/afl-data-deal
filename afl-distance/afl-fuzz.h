@@ -41,7 +41,7 @@ struct queue_entry {
 };
 
 
-static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf);
+u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf);
 
 void show_stats(void);
 

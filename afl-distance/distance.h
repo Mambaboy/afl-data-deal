@@ -70,14 +70,10 @@ class Record{
 };
 
 // 函数
-static void Log (char const *fmt, ...);
+void Log (char const *fmt, ...);
 uint8_t InitNumpy();
 uint32_t *CallPython(uint32_t * data, u32 inputnum);
 void InitPython();
-
-//变量
-static uint8_t initpython=0;
-static PyObject* pv; // the target fuction
 
 
 // 外部的函数和变量
