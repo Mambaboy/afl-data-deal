@@ -89,9 +89,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
         matrix.label[i] = (uint32_t *) calloc(  matrix.col, sizeof(uint32_t));
     }
 
-    uint32_t distance = CalDis ( input1, input2, matrix.row-1, matrix.col-1, matrix);
-	
-	
+    uint32_t distance = CalDis ( input1,q1->len, input2,q2->len, matrix.row-1, matrix.col-1, matrix);
 
     //free the heap
     for (i = 0; i < matrix.row; i++){
@@ -134,7 +132,7 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2){
     return distance;
 }
 
-uint32_t Record::CalDis(u8* input1, u8* input2, uint32_t i, uint32_t j, Matrix matrix_each){
+uint32_t Record::CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each){
 
     if (matrix_each.label[i][j]==1)
         return matrix_each.content[i][j];
@@ -146,14 +144,22 @@ uint32_t Record::CalDis(u8* input1, u8* input2, uint32_t i, uint32_t j, Matrix m
     }else if(j == 0){
         distance=i;
     }else{
-        distance=
-        min(
+        if  ( (len1/len2 > 5 || len2/len1 >5) &&(len1 > 1000 || len2 > 1000) ){
+            if (len1> len2)
+                distance =len1;
+            else
+                distance= len2;
+        }
+        else{
+            distance=
             min(
-                CalDis(input1, input2, i-1, j-1,matrix_each)+(input1[i-1]==input2[j-1] ? 0 : 1),
-                CalDis(input1, input2, i, j-1,matrix_each) + 1
-               ),
-            CalDis(input1, input2, i-1, j,matrix_each) + 1
-        );
+                min(
+                    CalDis(input1,len1, input2,len2, i-1, j-1,matrix_each)+(input1[i-1]==input2[j-1] ? 0 : 1),
+                    CalDis(input1,len1, input2,len2, i, j-1,matrix_each) + 1
+                   ),
+                CalDis(input1, len1, input2,len2, i-1, j,matrix_each) + 1
+            );
+        }
 
     }
     matrix_each.content[i][j]=distance;
@@ -372,6 +378,7 @@ uint32_t * CallPython(uint32_t* data, u32 inputnum){
     if (pRet){
         result = (PyArrayObject *)(pRet);
         num = result->dimensions[0];
+        Log("\nselected %d inputs\n",num);
         selected_ids =(uint32_t*) malloc( (num+1)*sizeof(uint32_t)); // free in the later
         for( uint32_t m = 0; m < num; m++){
             //访问数据
