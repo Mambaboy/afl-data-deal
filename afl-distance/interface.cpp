@@ -25,3 +25,12 @@ u32 * GetSelectedSons(u32 parent_id){
 	u32* selected_ids= aflRecord->GetSelectedSons( parent_id);	
     return selected_ids; 
 }
+
+
+u8 CheckToAdd( struct queue_entry * q, u8* mem, u32 len){
+    uint32_t distance = aflRecord->GetTargetEditDis(q, mem,len);
+    if( distance < len/20)
+        return 0;
+    return 1;
+
+}

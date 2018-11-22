@@ -299,7 +299,31 @@ enum {
   /* 05 */ FAULT_NOBITS
 };
 
+static void minimize_bits(u8* dst, u8* src);
 
+static u32 diff_trace(struct queue_entry * q  ){
+    u32 diffnum=0;
+    u32 i = 0;
+    u8 old ,new;
+
+    if (!q->trace_mini) {
+         q->trace_mini = ck_alloc(MAP_SIZE >> 3);
+         minimize_bits(q->trace_mini, trace_bits);
+    }
+
+    for (; i < MAP_SIZE; i++){
+        old = (q->trace_mini[i >> 3]) & (1 << (i & 7) );
+        new = trace_bits[i];
+        if( (old ==0) && (new==0) )
+            continue;
+
+        if( (old !=0) && (new!=0) )
+            continue;
+
+        diffnum++;
+    }
+    return diffnum;
+}
 
 
 
@@ -765,7 +789,7 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
   q->id           = queued_paths;
   if (queue_cur){
 	  q->selected=0; // init is 0
-	  AddSons(queue_cur->id, q->id);
+	  //AddSons(queue_cur->id, q->id);
   }
   else
       q->selected=1; // these are the init seeds
@@ -1244,7 +1268,8 @@ static void update_bitmap_score(struct queue_entry* q) {
             previous winner, discard its trace_bits[] if necessary. */
 
          if (!--top_rated[i]->tc_ref) {
-           ck_free(top_rated[i]->trace_mini);
+            //need it
+           //ck_free(top_rated[i]->trace_mini);
            top_rated[i]->trace_mini = 0;
          }
 
@@ -1279,7 +1304,7 @@ static void cull_queue(void) {
     static u8 temp_v[MAP_SIZE >> 3];
     u32 i,j;
   
-    if (1){ 
+    if (0){ 
           if (queued_paths < 100)
               return;
           uint32_t* selected_ids =  GetSelectedSons(0);
@@ -3147,6 +3172,12 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
       if (crash_mode) total_crashes++;
       return 0;
     }    
+
+    if (!CheckToAdd(queue_cur,(u8*)mem, len) ){
+        u32 diffs =  diff_trace( queue_cur);
+        fprintf(log_file, "ignore an input produced by %s\n", queue_cur->fname);
+        return 0;  
+    }
 
 #ifndef SIMPLE_FILES
 

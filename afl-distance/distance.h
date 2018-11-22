@@ -63,9 +63,13 @@ class Record{
         void AddSons(u32 parent_id, u32 son_id);
         // useold 0, 1
         uint32_t GetEditDis(uint32_t id1, uint32_t id2, uint8_t useold);
-        uint32_t CalDis(u8* input1, u32 len1,  u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each);
+        uint32_t GetTargetEditDis(struct queue_entry* q, u8* mem, u32 len);
+
         u8* ReadInput(u8* fname, u32 len);
-        void UpdateOneDistance(uint32_t id);
+
+        uint32_t CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each);
+
+        void UpdateOneDistance(u32 id);
 
 };
 
@@ -75,6 +79,7 @@ uint8_t InitNumpy();
 uint32_t *CallPython(uint32_t * data, u32 inputnum);
 void InitPython();
 
+struct queue_entry * GetIndexQ(u32 num);
 
 // 外部的函数和变量
 extern void show_stats(void);

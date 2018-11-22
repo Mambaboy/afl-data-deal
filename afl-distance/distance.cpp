@@ -40,8 +40,42 @@ void Record::AddSons(u32 parent_id, u32 son_id){
 }	
 
 
+uint32_t Record::GetTargetEditDis(struct queue_entry* q, u8* mem, u32 len){
+   
+    uint32_t i,j;
+    u64 starttime= get_cur_time_us();
+    u64 timeondistance=0;
+
+    Matrix matrix;
+
+    matrix.row = q->len+1; // [0, a.length] [0,matrix.row)
+    matrix.col = len+1;
+
+    u8* input = ReadInput(q->fname, q->len);
+
+    matrix.content = (uint32_t **)malloc( sizeof(uint32_t*) * matrix.row);
+    matrix.label   = (uint32_t **)malloc( sizeof(uint32_t*) * matrix.row);
+
+    for (i = 0; i < matrix.row; ++i){
+        matrix.content[i] = (uint32_t *) malloc( sizeof(uint32_t) * matrix.col);
+        matrix.label[i] = (uint32_t *) calloc(  matrix.col, sizeof(uint32_t));
+    }
+
+    uint32_t distance = CalDis ( input, q->len, mem, len, matrix.row-1, matrix.col-1, matrix);
+
+    //free the heap
+    for (i = 0; i < matrix.row; i++){
+        free(matrix.content[i]);
+        free(matrix.label[i]); 
+    }
+    free(matrix.content);
+
+    free(input);
+
+    return distance;
+}
+
 uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
-    
     //std::cout << id1 << " and " << id2 << std::endl;
     if (id1==id2)
         return 0;
@@ -76,15 +110,8 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     struct queue_entry* q1, *q2;
     u32 i,j;
 
-    q1 = queue;
-    i=id1;
-    while(i--)
-        q1=q1->next;
-
-    q2=queue;        
-    j=id2;
-    while(j--)
-        q2=q2->next;
+    q1 = GetIndexQ(id1);
+    q2 = GetIndexQ(id2);
 
     Matrix matrix;
 
@@ -124,25 +151,6 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     }   
     m_disrecord_[id1][id2] = distance;
     m_disrecord_[id2][id1] = distance; // 会覆盖 
-    //if (m_disrecord_.find(id1)==m_disrecord_.end()){
-    //    std::map<u32 ,u32> record;
-    //    record.insert( std::make_pair(id2, distance) ); 
-    //    m_disrecord_[id1] = record; 		
-    //}
-    //else{
-    //    m_disrecord_[id1][id2]=distance; // 会覆盖 会新建 
-    //}
-
-    //// update the q2
-    //if (m_disrecord_.find(id2)==m_disrecord_.end()){
-    //    std::map<u32, u32> record;
-    //    record.insert(std::make_pair(id1,distance));
-    //    m_disrecord_[id2] = record; 		
-    //}
-    //else{
-    //    //m_disrecord_[id2].insert(std::make_pair(id1,distance)); 
-    //    m_disrecord_[id2][id1]=distance; // 会覆盖 
-    //}
     
     timeondistance += (get_cur_time_us() - starttime);
     Log("[New]:cal on %d(d:%d) and %d(d:%d), cost %llu time, distance: %d\n",id1, q1->len, id2, q2->len, timeondistance , distance);
@@ -161,11 +169,11 @@ uint32_t Record::CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, 
     }else if(j == 0){
         distance=i;
     }else{
-        if  ( (len1/len2 > 5 || len2/len1 >5) &&(len1 > 1000 || len2 > 1000) ){
-            if (len1> len2)
-                distance =len1-len2;
+        if( (len1/len2 > 5 || len2/len1 >5) && (len1 > 1000 || len2 > 1000) ){
+            if (len1 > len2)
+                distance = len1 - len2;
             else
-                distance= len2- len1;
+                distance = len2 - len1;
         }
         else{
             distance=
@@ -209,20 +217,22 @@ void Record::UpdateOneDistance(u32 id){
 
 uint32_t* Record::GetSelectedSons(u32 parent_id){
     //1. get the sons id
-    //std::set<u32> sonids;
-    //if (m_tree_.find(parent_id) == m_tree_.end())
-    //    return (u32*)0;
-    //else{
-    //    sonids = m_tree_[parent_id];
-    //}
+    std::set<u32> sonids;
+    if (m_tree_.find(parent_id) == m_tree_.end()){
+        Log("it is not a parent node\n");
+        exit(0);
+    }
+    else{
+        sonids = m_tree_[parent_id];
+    }
 
     //2. calculate the distance between each other in the sons
     // get the distance matrix
-    //for (auto id1 : sonids){
-    //    for (auto id2: sonids){
-    //        GetEditDis(id1, id2);
-    //    }
-    //}
+    for (auto id1 : sonids){
+        for (auto id2: sonids){
+            GetEditDis(id1, id2,1);
+        }
+    }
 
     uint32_t i, j, distance;
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
@@ -312,6 +322,13 @@ uint32_t* Record::GetSelectedSons(u32 parent_id){
     return result;
 }
 
+struct queue_entry* GetIndexQ( u32 num){
+    struct queue_entry* q;
+    q = queue;
+    while(num--)
+        q = q->next;
+    return q;
+}
 
 uint32_t Add(uint32_t x){
     return (x+1);
