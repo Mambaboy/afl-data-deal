@@ -12,7 +12,6 @@ u8 InitDistance( ){
 }
 
 void AddSons(u32 parent_id, u32 son_id){
-    return;
     aflRecord->AddSons(parent_id, son_id);
 }
 
@@ -27,10 +26,8 @@ u32 * GetSelectedSons(u32 parent_id){
 }
 
 
-u8 CheckToAdd( struct queue_entry * q, u8* mem, u32 len){
+uint32_t GetEditDistance( struct queue_entry * q, u8* mem, u32 len){
     uint32_t distance = aflRecord->GetTargetEditDis(q, mem,len);
-    if( distance < len/20)
-        return 0;
-    return 1;
+    return distance;
 
 }

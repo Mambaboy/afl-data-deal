@@ -789,7 +789,7 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
   q->id           = queued_paths;
   if (queue_cur){
 	  q->selected=0; // init is 0
-	  //AddSons(queue_cur->id, q->id);
+	  AddSons(queue_cur->id, q->id);
   }
   else
       q->selected=1; // these are the init seeds
@@ -3172,12 +3172,23 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
       if (crash_mode) total_crashes++;
       return 0;
     }    
-
-    if (!CheckToAdd(queue_cur,(u8*)mem, len) ){
-        u32 diffs =  diff_trace( queue_cur);
-        fprintf(log_file, "ignore an input produced by %s\n", queue_cur->fname);
-        return 0;  
+    
+    
+    u32 diffs =  diff_trace( queue_cur);
+    fprintf(log_file, "[Diff]  the trace diff is %d between input(s:%d) from seed(s:%d)\n\n", 
+                    diffs,  count_bytes(trace_bits), queue_cur->bitmap_size);
+   
+    u32 distance = GetEditDistance( queue_cur, (u8*) mem, len);
+    if (distance < len/20)
+    {   
+        fprintf(log_file, "[Ignore] an input (ed:%d) produced by %s\n", distance, queue_cur->fname);
     }
+    else{
+        fprintf(log_file, "[ADD] an input (ed:%d) produced by %s\n", distance, queue_cur->fname);
+    }
+
+    if (distance < len/20)
+        return 0;
 
 #ifndef SIMPLE_FILES
 
@@ -3214,8 +3225,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     
     keeping = 1;
     
-    // queue保存之后立刻trim一下
-    trim_case(argv, queue_top, mem);
+    // queue保存之后立刻trim一下    
+    // trim_case(argv, queue_top, mem);
 
   }
 
@@ -4627,7 +4638,7 @@ u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
     update_bitmap_score(q);
     
     // update the distance
-    fprintf( log_file, "rewrite the %s\n", q->fname); 
+    //fprintf( log_file, "[Trim] rewrite the %s\n", q->fname); 
     //每次add queue之后立刻调用，就不用更新了
     //UpdateOneDistance(q->id);
 
@@ -5109,7 +5120,7 @@ static u8 fuzz_one(char** argv) {
    * TRIMMING *
    ************/
 
-  if (!dumb_mode && !queue_cur->trim_done && 0) {
+  if (!dumb_mode && !queue_cur->trim_done  ) {
 
     u8 res = trim_case(argv, queue_cur, in_buf);
 

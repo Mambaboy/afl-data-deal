@@ -34,13 +34,6 @@ extern "C" {
 #include <thread>         // std::thread
 #include <future>         // std::promise, std::future
 
-// the matrix_each for each distance betwwen two input
-struct Matrix{
-    uint32_t row;
-    uint32_t col;
-    uint32_t **content;
-    uint32_t **label;
-};
 
 // the first is the id of parent node, the second is ids the son nodes 
 typedef std::map< u32, std::set<u32> > Tree; 
@@ -67,7 +60,7 @@ class Record{
 
         u8* ReadInput(u8* fname, u32 len);
 
-        uint32_t CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each);
+        uint32_t CalDis(u8* input1, u32 len1, u8* input2, u32 len2);
 
         void UpdateOneDistance(u32 id);
 

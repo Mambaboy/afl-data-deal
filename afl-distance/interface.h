@@ -20,8 +20,7 @@ u8 InitDistance();
 
 void UpdateOneDistance(u32 id);
 
-u8 CheckToAdd( struct queue_entry * q, u8* mem, u32 len); 
-
+uint32_t GetEditDistance( struct queue_entry * q, u8* mem, u32 len);
 #ifdef __cplusplus
 }
 #endif

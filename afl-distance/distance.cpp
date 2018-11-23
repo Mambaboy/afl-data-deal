@@ -46,29 +46,9 @@ uint32_t Record::GetTargetEditDis(struct queue_entry* q, u8* mem, u32 len){
     u64 starttime= get_cur_time_us();
     u64 timeondistance=0;
 
-    Matrix matrix;
-
-    matrix.row = q->len+1; // [0, a.length] [0,matrix.row)
-    matrix.col = len+1;
-
     u8* input = ReadInput(q->fname, q->len);
 
-    matrix.content = (uint32_t **)malloc( sizeof(uint32_t*) * matrix.row);
-    matrix.label   = (uint32_t **)malloc( sizeof(uint32_t*) * matrix.row);
-
-    for (i = 0; i < matrix.row; ++i){
-        matrix.content[i] = (uint32_t *) malloc( sizeof(uint32_t) * matrix.col);
-        matrix.label[i] = (uint32_t *) calloc(  matrix.col, sizeof(uint32_t));
-    }
-
-    uint32_t distance = CalDis ( input, q->len, mem, len, matrix.row-1, matrix.col-1, matrix);
-
-    //free the heap
-    for (i = 0; i < matrix.row; i++){
-        free(matrix.content[i]);
-        free(matrix.label[i]); 
-    }
-    free(matrix.content);
+    uint32_t distance = CalDis ( input, q->len, mem, len);
 
     free(input);
 
@@ -113,31 +93,11 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     q1 = GetIndexQ(id1);
     q2 = GetIndexQ(id2);
 
-    Matrix matrix;
-
-    matrix.row = q1->len+1; // [0, a.length] [0,matrix.row)
-    matrix.col = q2->len+1;
-
     u8* input1 = ReadInput(q1->fname, q1->len);
     u8* input2 = ReadInput(q2->fname, q2->len);
 
-    matrix.content = (uint32_t **)malloc( sizeof(uint32_t*) * matrix.row);
-    matrix.label   = (uint32_t **)malloc( sizeof(uint32_t*) * matrix.row);
-
-    for (i = 0; i < matrix.row; ++i){
-        matrix.content[i] = (uint32_t *) malloc( sizeof(uint32_t) * matrix.col);
-        matrix.label[i] = (uint32_t *) calloc(  matrix.col, sizeof(uint32_t));
-    }
-
-    uint32_t distance = CalDis ( input1, q1->len, input2, q2->len, matrix.row-1, matrix.col-1, matrix);
-
-    //free the heap
-    for (i = 0; i < matrix.row; i++){
-        free(matrix.content[i]);
-        free(matrix.label[i]); 
-    }
-    free(matrix.content);
-
+    uint32_t distance = CalDis ( input1, q1->len, input2, q2->len);
+    
     free(input1);
     free(input2);
 
@@ -157,39 +117,30 @@ uint32_t Record::GetEditDis(u32 id1, u32 id2, uint8_t useold){
     return distance;
 }
 
-uint32_t Record::CalDis(u8* input1, u32 len1, u8* input2, u32 len2, uint32_t i, uint32_t j, Matrix matrix_each){
+#define min3(a,b,c) (a < b ? (a < c ? a : c) : (b < c ? b : c))
+uint32_t Record::CalDis(u8* input1, u32 len1, u8* input2, u32 len2){
 
-    if (matrix_each.label[i][j]==1)
-        return matrix_each.content[i][j];
+	uint32_t  d_tmp, d_new, i, j;
+	uint32_t* d = (uint32_t*) malloc ( (len1 + 1) * sizeof (uint32_t) );
+	uint32_t res;
 
-    //Log("calculte (%d,%d)\n", i,j);
-    uint32_t distance;
-    if(i == 0){
-        distance=j;
-    }else if(j == 0){
-        distance=i;
-    }else{
-        if( (len1/len2 > 5 || len2/len1 >5) && (len1 > 1000 || len2 > 1000) ){
-            if (len1 > len2)
-                distance = len1 - len2;
-            else
-                distance = len2 - len1;
-        }
-        else{
-            distance=
-            min(
-                min(
-                    CalDis(input1,len1, input2,len2, i-1, j-1,matrix_each)+(input1[i-1]==input2[j-1] ? 0 : 1),
-                    CalDis(input1,len1, input2,len2, i, j-1,matrix_each) + 1
-                   ),
-                CalDis(input1, len1, input2,len2, i-1, j,matrix_each) + 1
-            );
-        }
+	if ( !len1 ) return len2;
+	if ( !len2 ) return len1;
 
-    }
-    matrix_each.content[i][j]=distance;
-    matrix_each.label[i][j]=1;
-    return distance;
+	for ( i = 0; i <= len1; ++i ) { d[i] = i; }
+
+	for ( j = 1; j <= len2; ++j ) {
+		d_tmp = d[0]++;
+		for ( i = 1; i <= len1; ++i ) {
+			d_new = min3 ( d[i-1] + 1, d_tmp + ( input1[i-1] != input2[j-1] ), d[i] + 1 );
+			d_tmp = d[i];
+			d[i] = d_new;
+		}
+	}
+	res = d[len1];
+    free ( d );
+    return res;
+    
 }
 
 u8* Record::ReadInput(u8* fname, u32 len){
