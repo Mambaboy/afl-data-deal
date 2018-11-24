@@ -3225,9 +3225,6 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     
     keeping = 1;
     
-    // queue保存之后立刻trim一下    
-    // trim_case(argv, queue_top, mem);
-
   }
 
   switch (fault) {

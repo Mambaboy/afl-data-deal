@@ -167,29 +167,29 @@ void Record::UpdateOneDistance(u32 id){
 }
 
 uint32_t* Record::GetSelectedSons(u32 parent_id){
-    //1. get the sons id
-    std::set<u32> sonids;
-    if (m_tree_.find(parent_id) == m_tree_.end()){
-        Log("it is not a parent node\n");
-        exit(0);
-    }
-    else{
-        sonids = m_tree_[parent_id];
-    }
+    ////1. get the sons id
+    //std::set<u32> sonids;
+    //if (m_tree_.find(parent_id) == m_tree_.end()){
+    //    Log("it is not a parent node\n");
+    //    exit(0);
+    //}
+    //else{
+    //    sonids = m_tree_[parent_id];
+    //}
 
-    //2. calculate the distance between each other in the sons
-    // get the distance matrix
-    for (auto id1 : sonids){
-        for (auto id2: sonids){
-            GetEditDis(id1, id2,1);
-        }
-    }
+    ////2. calculate the distance between each other in the sons
+    //// get the distance matrix
+    //for (auto id1 : sonids){
+    //    for (auto id2: sonids){
+    //        GetEditDis(id1, id2,1);
+    //    }
+    //}
 
     uint32_t i, j, distance;
     uint32_t *data=(uint32_t*) malloc(queued_paths * queued_paths * sizeof(uint32_t));
 
     u8 buffer [50];
-    u8 threadnum=1; // 1 或者2
+    u8 threadnum=1; // 1 或者5
     std::queue< std::future<uint32_t> > workers;
     for( i=0; i < queued_paths; i++){
         for(j=i; j < queued_paths-threadnum+1; j=j+threadnum){
