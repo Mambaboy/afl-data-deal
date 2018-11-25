@@ -3,3 +3,4 @@ afl-orig
 *.png
 plugincluster.pyc
 DefCC-libs2eplugins/
+afl-all-favored
